@@ -2,6 +2,30 @@
    CV PLUG — Main JavaScript
    ============================================================ */
 
+// ╔══════════════════════════════════════════════════════════════╗
+// ║  STRIPE PAYMENT LINKS                                        ║
+// ║  Paste each link from: dashboard.stripe.com → Payment Links  ║
+// ║  Format: 'https://buy.stripe.com/xxxxxxxxxxxx'               ║
+// ╚══════════════════════════════════════════════════════════════╝
+const STRIPE_LINKS = {
+    'basic-cv':        '',   // Basic CV — £29
+    'professional-cv': '',   // Professional CV — £59
+    'cv-cover-letter': '',   // CV + Cover Letter — £79
+    'cv-starter':      '',   // CV Starter — £149
+    'career-pro':      '',   // Career Pro — £299/mo
+    'full-service':    '',   // Full Service — £499/mo
+};
+
+// Package display metadata (do not edit unless prices change)
+const PACKAGES = {
+    'basic-cv':        { name: 'Basic CV',          price: '£29',     note: 'One-time payment · Work starts within 24hrs of confirmation' },
+    'professional-cv': { name: 'Professional CV',   price: '£59',     note: 'One-time payment · Work starts within 24hrs of confirmation' },
+    'cv-cover-letter': { name: 'CV + Cover Letter', price: '£79',     note: 'One-time payment · Work starts within 24hrs of confirmation' },
+    'cv-starter':      { name: 'CV Starter',        price: '£149',    note: 'One-time payment · Work starts within 24hrs of confirmation' },
+    'career-pro':      { name: 'Career Pro',        price: '£299/mo', note: 'Billed monthly · Cancel anytime · Work starts after first payment' },
+    'full-service':    { name: 'Full Service',      price: '£499/mo', note: 'Billed monthly · Cancel anytime · Work starts after first payment' },
+};
+
 // ── Safe gtag wrapper (fires even if GA hasn't loaded yet) ────
 function track(event, params) {
     if (typeof gtag === 'function') {
@@ -195,22 +219,32 @@ document.addEventListener('click', e => {
     track(ev, { event_label: label });
 });
 
-// ── Pricing card → auto-select package in form ────────────────
+// ── Pricing card → auto-select package + inject Pay Now links ─
 document.querySelectorAll('.price-cta[data-package]').forEach(btn => {
+    const pkg = btn.dataset.package;
+
+    // Inject "Pay Now" link on card if Stripe URL is set
+    const stripeUrl = STRIPE_LINKS[pkg];
+    if (stripeUrl) {
+        const payLink = document.createElement('a');
+        payLink.href = stripeUrl;
+        payLink.className = 'pay-now-link';
+        payLink.target = '_blank';
+        payLink.rel = 'noopener noreferrer';
+        payLink.dataset.track = 'pay_now_click';
+        payLink.dataset.label = PACKAGES[pkg]?.name || pkg;
+        payLink.innerHTML = '<svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true"><rect x="1" y="5" width="11" height="7.5" rx="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M4 5V3.5a2.5 2.5 0 015 0V5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>Pay Now';
+        btn.after(payLink);
+    }
+
+    // Click: auto-select radio + scroll to form
     btn.addEventListener('click', e => {
         e.preventDefault();
-        const pkg = btn.dataset.package;
-
-        // Select matching radio
         const radio = document.querySelector(`input[name="package"][value="${pkg}"]`);
         if (radio) {
             radio.checked = true;
             radio.dispatchEvent(new Event('change'));
-            // Visual highlight
-            document.querySelectorAll('.package-option label').forEach(l => l.closest('.package-option') && null);
         }
-
-        // Scroll to form
         const target = document.getElementById('upload-cv');
         if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
@@ -240,11 +274,35 @@ document.querySelectorAll('.package-option input[type="radio"]').forEach(radio =
 
 // ── Form submissions ──────────────────────────────────────────
 (function () {
-    function showThankYou() {
+
+    function showThankYou(selectedPkg) {
         const ty = document.getElementById('thank-you');
-        if (ty) {
-            ty.classList.add('show');
-            ty.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        if (!ty) return;
+        ty.classList.add('show');
+        ty.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+        // Populate payment block if a package was selected
+        const pkgInfo = selectedPkg ? PACKAGES[selectedPkg] : null;
+        const stripeUrl = selectedPkg ? STRIPE_LINKS[selectedPkg] : null;
+        const block = document.getElementById('tyPaymentBlock');
+
+        if (pkgInfo && block) {
+            document.getElementById('tyPkgName').textContent = pkgInfo.name;
+            document.getElementById('tyPkgPrice').textContent = pkgInfo.price;
+            document.getElementById('tyPayNote').textContent = pkgInfo.note;
+
+            const payBtn = document.getElementById('tyPayBtn');
+            if (stripeUrl) {
+                payBtn.href = stripeUrl;
+                payBtn.addEventListener('click', () => {
+                    track('pay_now_click', { event_label: pkgInfo.name });
+                }, { once: true });
+            } else {
+                // Stripe link not yet set — hide pay button, show WhatsApp as primary
+                payBtn.style.display = 'none';
+                document.querySelector('.payment-security-note').style.display = 'none';
+            }
+            block.style.display = 'block';
         }
     }
 
@@ -265,8 +323,8 @@ document.querySelectorAll('.package-option input[type="radio"]').forEach(radio =
                 });
                 if (res.ok) {
                     track('contact_form_submit', { event_label: 'contact' });
-                    contactForm.style.display = 'none';
-                    showThankYou();
+                    contactForm.closest('section') && (contactForm.closest('.form-card').style.display = 'none');
+                    showThankYou(null);
                 } else {
                     btn.disabled = false;
                     btn.textContent = 'Send Message';
@@ -285,9 +343,10 @@ document.querySelectorAll('.package-option input[type="radio"]').forEach(radio =
     if (uploadForm) {
         uploadForm.addEventListener('submit', async e => {
             e.preventDefault();
+            const selectedPkg = uploadForm.querySelector('[name="package"]:checked')?.value || null;
             const btn = uploadForm.querySelector('[type="submit"]');
             btn.disabled = true;
-            btn.textContent = 'Uploading…';
+            btn.textContent = 'Submitting…';
 
             try {
                 const res = await fetch(uploadForm.action, {
@@ -296,9 +355,9 @@ document.querySelectorAll('.package-option input[type="radio"]').forEach(radio =
                     headers: { Accept: 'application/json' }
                 });
                 if (res.ok) {
-                    track('cv_upload_submit', { event_label: 'cv_upload' });
+                    track('cv_upload_submit', { event_label: selectedPkg || 'cv_upload' });
                     uploadForm.style.display = 'none';
-                    showThankYou();
+                    showThankYou(selectedPkg);
                 } else {
                     btn.disabled = false;
                     btn.textContent = 'Submit My CV';
@@ -311,4 +370,5 @@ document.querySelectorAll('.package-option input[type="radio"]').forEach(radio =
             }
         });
     }
+
 })();
