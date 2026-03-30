@@ -1,0 +1,181 @@
+/* ============================================================
+   CV PLUG — Main JavaScript
+   ============================================================ */
+
+// ── Progress bar + nav scroll state ──────────────────────────
+window.addEventListener('scroll', () => {
+    const s = window.scrollY;
+    const t = document.documentElement.scrollHeight - window.innerHeight;
+    document.getElementById('progress').style.width = (s / t * 100) + '%';
+    document.getElementById('nav').classList.toggle('scrolled', s > 40);
+}, { passive: true });
+
+// ── Scroll reveal (IntersectionObserver) ─────────────────────
+const revealObs = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('in'); });
+}, { threshold: 0.12, rootMargin: '0px 0px -50px 0px' });
+document.querySelectorAll('.reveal,.reveal-l,.reveal-r').forEach(el => revealObs.observe(el));
+
+// ── Confetti (job offer section) ─────────────────────────────
+const confettiColors = ['#C49A2A','#FFD700','#10B981','#22D3EE','rgba(255,255,255,0.8)'];
+const confettiWrap = document.getElementById('confetti');
+if (confettiWrap) {
+    for (let i = 0; i < 28; i++) {
+        const p = document.createElement('div');
+        p.className = 'cp';
+        const sz = 4 + Math.random() * 7;
+        p.style.cssText = `left:${Math.random()*100}%;background:${confettiColors[i%confettiColors.length]};--cd:${2.4+Math.random()*2}s;--cdelay:${Math.random()*3}s;width:${sz}px;height:${sz}px;border-radius:${Math.random()>.5?'50%':'2px'}`;
+        confettiWrap.appendChild(p);
+    }
+}
+
+// ── Particles ────────────────────────────────────────────────
+function mkParticles(id, n) {
+    const c = document.getElementById(id);
+    if (!c) return;
+    for (let i = 0; i < n; i++) {
+        const p = document.createElement('div');
+        p.className = 'particle';
+        p.style.cssText = `left:${Math.random()*100}%;bottom:0;--pd:${7+Math.random()*10}s;--pdelay:${Math.random()*8}s;--drift:${(Math.random()-.5)*60}px;width:${1+Math.random()*2}px;height:${1+Math.random()*2}px`;
+        c.appendChild(p);
+    }
+}
+mkParticles('hp', 18);
+mkParticles('cp2', 22);
+
+// ── Timeline scroll activation ───────────────────────────────
+const timeline = document.getElementById('timeline');
+if (timeline) {
+    const tlObs = new IntersectionObserver(entries => {
+        entries.forEach(e => {
+            if (e.isIntersecting) {
+                e.target.querySelectorAll('.tl-dot').forEach((d, i) =>
+                    setTimeout(() => d.classList.add('on'), i * 320));
+            }
+        });
+    }, { threshold: 0.3 });
+    tlObs.observe(timeline);
+}
+
+// ── Exploding view — queue-based scroll scrub ─────────────────
+// One seek fires at a time via seeked-event queue → no flicker or seek pile-up.
+(function () {
+    const section = document.getElementById('exploding-view');
+    const video   = document.getElementById('expVideo');
+    const progBar = document.getElementById('expProgressBar');
+    const sideBar = document.getElementById('expSidebarFill');
+    const hint    = document.getElementById('expHint');
+    if (!section || !video) return;
+
+    video.pause();
+    video.currentTime = 0;
+
+    const panels = [
+        { el: document.getElementById('expPanel1'), show: 0.04, hide: 0.33 },
+        { el: document.getElementById('expPanel2'), show: 0.37, hide: 0.65 },
+        { el: document.getElementById('expPanel3'), show: 0.68, hide: 0.97 },
+    ];
+
+    let isSeeking  = false;
+    let nextTarget = null;
+
+    function commitSeek(t) {
+        isSeeking = true;
+        video.currentTime = t;
+    }
+
+    video.addEventListener('seeked', () => {
+        isSeeking = false;
+        if (nextTarget !== null) {
+            const t = nextTarget;
+            nextTarget = null;
+            commitSeek(t);
+        }
+    });
+
+    function requestSeek(t) {
+        if (!isSeeking) { commitSeek(t); } else { nextTarget = t; }
+    }
+
+    let rafId = null;
+    let lastP  = -1;
+
+    function update() {
+        rafId = null;
+        const rect        = section.getBoundingClientRect();
+        const totalScroll = section.offsetHeight - window.innerHeight;
+        const scrolled    = Math.max(0, -rect.top);
+        const p           = Math.min(1, scrolled / totalScroll);
+
+        if (Math.abs(p - lastP) < 0.0003) return;
+        lastP = p;
+
+        if (video.readyState >= 2 && video.duration) {
+            requestSeek(p * video.duration);
+        }
+
+        if (progBar) progBar.style.width  = (p * 100).toFixed(2) + '%';
+        if (sideBar) sideBar.style.height = (p * 100).toFixed(2) + '%';
+        if (hint)    hint.classList.toggle('gone', p > 0.025);
+
+        panels.forEach(({ el, show, hide }) => {
+            if (el) el.classList.toggle('active', p >= show && p < hide);
+        });
+    }
+
+    window.addEventListener('scroll', () => {
+        if (!rafId) rafId = requestAnimationFrame(update);
+    }, { passive: true });
+
+    window.addEventListener('resize', () => {
+        if (!rafId) rafId = requestAnimationFrame(update);
+    }, { passive: true });
+
+    requestAnimationFrame(update);
+})();
+
+// ── Mobile nav toggle ─────────────────────────────────────────
+(function () {
+    const burger = document.getElementById('navBurger');
+    const drawer = document.getElementById('navDrawer');
+    if (!burger || !drawer) return;
+
+    function openMenu() {
+        burger.classList.add('open');
+        burger.setAttribute('aria-expanded', 'true');
+        drawer.classList.add('open');
+        drawer.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+    }
+    function closeMenu() {
+        burger.classList.remove('open');
+        burger.setAttribute('aria-expanded', 'false');
+        drawer.classList.remove('open');
+        drawer.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = '';
+    }
+
+    burger.addEventListener('click', e => {
+        e.stopPropagation();
+        burger.classList.contains('open') ? closeMenu() : openMenu();
+    });
+    drawer.querySelectorAll('a').forEach(a => a.addEventListener('click', closeMenu));
+    document.addEventListener('click', e => {
+        if (drawer.classList.contains('open') && !drawer.contains(e.target) && !burger.contains(e.target)) {
+            closeMenu();
+        }
+    });
+})();
+
+// ── Parallax hero glow ────────────────────────────────────────
+let heroTick = false;
+window.addEventListener('scroll', () => {
+    if (!heroTick) {
+        requestAnimationFrame(() => {
+            const g = document.querySelector('.hero-glow');
+            if (g) g.style.transform = `scale(1) translateY(${window.scrollY * 0.14}px)`;
+            heroTick = false;
+        });
+        heroTick = true;
+    }
+}, { passive: true });
