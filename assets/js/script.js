@@ -2,6 +2,13 @@
    CV PLUG — Main JavaScript
    ============================================================ */
 
+// ── Safe gtag wrapper (fires even if GA hasn't loaded yet) ────
+function track(event, params) {
+    if (typeof gtag === 'function') {
+        gtag('event', event, params || {});
+    }
+}
+
 // ── Progress bar + nav scroll state ──────────────────────────
 window.addEventListener('scroll', () => {
     const s = window.scrollY;
@@ -58,7 +65,6 @@ if (timeline) {
 }
 
 // ── Exploding view — queue-based scroll scrub ─────────────────
-// One seek fires at a time via seeked-event queue → no flicker or seek pile-up.
 (function () {
     const section = document.getElementById('exploding-view');
     const video   = document.getElementById('expVideo');
@@ -179,3 +185,147 @@ window.addEventListener('scroll', () => {
         heroTick = true;
     }
 }, { passive: true });
+
+// ── CTA event tracking ────────────────────────────────────────
+document.addEventListener('click', e => {
+    const t = e.target.closest('[data-track]');
+    if (!t) return;
+    const ev = t.dataset.track;
+    const label = t.dataset.label || t.textContent.trim().slice(0, 60);
+    track(ev, { event_label: label });
+});
+
+// ── FAQ accordion ─────────────────────────────────────────────
+document.querySelectorAll('.faq-question').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const item = btn.closest('.faq-item');
+        const isOpen = item.classList.contains('open');
+
+        // Close all
+        document.querySelectorAll('.faq-item.open').forEach(el => el.classList.remove('open'));
+
+        // Toggle current
+        if (!isOpen) item.classList.add('open');
+    });
+});
+
+// ── Package radio selection (visual state) ────────────────────
+document.querySelectorAll('.package-option input[type="radio"]').forEach(radio => {
+    radio.addEventListener('change', () => {
+        document.querySelectorAll('.package-option').forEach(opt => opt.classList.remove('selected'));
+        radio.closest('.package-option').classList.add('selected');
+        track('package_select', { event_label: radio.value });
+    });
+});
+
+// ── File drag-drop ────────────────────────────────────────────
+(function () {
+    const area = document.getElementById('fileDropArea');
+    const input = document.getElementById('cvFile');
+    const label = document.getElementById('fileDropLabel');
+    if (!area || !input) return;
+
+    function updateLabel(files) {
+        if (files && files.length) {
+            label.textContent = files[0].name;
+            area.classList.add('has-file');
+        }
+    }
+
+    area.addEventListener('click', () => input.click());
+
+    input.addEventListener('change', () => updateLabel(input.files));
+
+    area.addEventListener('dragover', e => {
+        e.preventDefault();
+        area.classList.add('drag-over');
+    });
+    area.addEventListener('dragleave', () => area.classList.remove('drag-over'));
+    area.addEventListener('drop', e => {
+        e.preventDefault();
+        area.classList.remove('drag-over');
+        const files = e.dataTransfer.files;
+        if (files.length) {
+            // Transfer to input
+            const dt = new DataTransfer();
+            dt.items.add(files[0]);
+            input.files = dt.files;
+            updateLabel(files);
+        }
+    });
+})();
+
+// ── Form submissions ──────────────────────────────────────────
+(function () {
+    function showThankYou() {
+        const ty = document.getElementById('thank-you');
+        if (ty) {
+            ty.classList.add('show');
+            ty.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }
+
+    // Contact form
+    const contactForm = document.getElementById('contactForm');
+    if (contactForm) {
+        contactForm.addEventListener('submit', async e => {
+            e.preventDefault();
+            const btn = contactForm.querySelector('[type="submit"]');
+            btn.disabled = true;
+            btn.textContent = 'Sending…';
+
+            try {
+                const res = await fetch(contactForm.action, {
+                    method: 'POST',
+                    body: new FormData(contactForm),
+                    headers: { Accept: 'application/json' }
+                });
+                if (res.ok) {
+                    track('contact_form_submit', { event_label: 'contact' });
+                    contactForm.style.display = 'none';
+                    showThankYou();
+                } else {
+                    btn.disabled = false;
+                    btn.textContent = 'Send Message';
+                    alert('Something went wrong. Please try again or WhatsApp us directly.');
+                }
+            } catch {
+                btn.disabled = false;
+                btn.textContent = 'Send Message';
+                alert('Something went wrong. Please check your connection and try again.');
+            }
+        });
+    }
+
+    // CV upload form
+    const uploadForm = document.getElementById('uploadForm');
+    if (uploadForm) {
+        uploadForm.addEventListener('submit', async e => {
+            e.preventDefault();
+            const btn = uploadForm.querySelector('[type="submit"]');
+            btn.disabled = true;
+            btn.textContent = 'Uploading…';
+
+            try {
+                const res = await fetch(uploadForm.action, {
+                    method: 'POST',
+                    body: new FormData(uploadForm),
+                    headers: { Accept: 'application/json' }
+                });
+                if (res.ok) {
+                    track('cv_upload_submit', { event_label: 'cv_upload' });
+                    uploadForm.style.display = 'none';
+                    showThankYou();
+                } else {
+                    btn.disabled = false;
+                    btn.textContent = 'Submit My CV';
+                    alert('Something went wrong. Please try again or WhatsApp us directly.');
+                }
+            } catch {
+                btn.disabled = false;
+                btn.textContent = 'Submit My CV';
+                alert('Something went wrong. Please check your connection and try again.');
+            }
+        });
+    }
+})();
