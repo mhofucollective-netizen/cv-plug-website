@@ -195,6 +195,27 @@ document.addEventListener('click', e => {
     track(ev, { event_label: label });
 });
 
+// ── Pricing card → auto-select package in form ────────────────
+document.querySelectorAll('.price-cta[data-package]').forEach(btn => {
+    btn.addEventListener('click', e => {
+        e.preventDefault();
+        const pkg = btn.dataset.package;
+
+        // Select matching radio
+        const radio = document.querySelector(`input[name="package"][value="${pkg}"]`);
+        if (radio) {
+            radio.checked = true;
+            radio.dispatchEvent(new Event('change'));
+            // Visual highlight
+            document.querySelectorAll('.package-option label').forEach(l => l.closest('.package-option') && null);
+        }
+
+        // Scroll to form
+        const target = document.getElementById('upload-cv');
+        if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+});
+
 // ── FAQ accordion ─────────────────────────────────────────────
 document.querySelectorAll('.faq-question').forEach(btn => {
     btn.addEventListener('click', () => {

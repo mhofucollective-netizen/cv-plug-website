@@ -352,13 +352,32 @@ section { position: relative; padding: var(--section-pad) clamp(24px, 6vw, 80px)
 #pricing { background: var(--bg-subtle); }
 .section-header { text-align: center; max-width: 600px; margin: 0 auto 64px; }
 .section-header .label { display: block; margin-bottom: 16px; }
+.pricing-group { margin-bottom: 56px; }
+.pricing-group:last-child { margin-bottom: 0; }
+.pricing-group-header {
+    display: flex; align-items: center; gap: 16px;
+    margin-bottom: 32px;
+}
+.pricing-group-label {
+    font-family: var(--font-display); font-size: 13px; font-weight: 700;
+    letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent);
+    white-space: nowrap;
+}
+.pricing-group-line {
+    flex: 1; height: 1px; background: var(--border);
+}
 .pricing-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    align-items: stretch;
+}
+.pricing-grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
     gap: 24px;
     align-items: stretch;
-    max-width: 1100px;
-    margin: 0 auto;
+    max-width: 780px;
 }
 .price-card {
     background: var(--bg-card);
@@ -668,7 +687,8 @@ footer { background: var(--bg-subtle); border-top: 1px solid var(--border); padd
 
 /* ── Responsive ── */
 @media (max-width: 1024px) {
-    .pricing-grid { grid-template-columns: 1fr; max-width: 440px; }
+    .pricing-grid { grid-template-columns: repeat(2, 1fr); }
+    .pricing-grid-2 { grid-template-columns: repeat(2, 1fr); }
     .faq-layout { grid-template-columns: 1fr; gap: 40px; }
     .contact-layout { grid-template-columns: 1fr; gap: 48px; }
     .foot-top { grid-template-columns: 1fr 1fr; gap: 36px; }
@@ -695,6 +715,7 @@ footer { background: var(--bg-subtle); border-top: 1px solid var(--border); padd
     .offer-nums { gap: 20px; }
     .int-stats { gap: 10px; }
     .pricing-grid { grid-template-columns: 1fr; max-width: 420px; }
+    .pricing-grid-2 { grid-template-columns: 1fr; max-width: 420px; }
     .testimonial-grid { grid-template-columns: 1fr; }
     .form-card { padding: 32px 24px; }
     .form-grid { grid-template-columns: 1fr; }
