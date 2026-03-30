@@ -768,30 +768,30 @@
                 <div class="form-group" style="margin-bottom:24px">
                     <label class="form-label">Select package *</label>
                     <div class="package-options">
-                        <label class="package-option">
-                            <input type="radio" name="package" value="starter" required>
-                            <div class="package-card">
-                                <div class="package-name">CV Starter</div>
-                                <div class="package-price">£149</div>
-                                <div class="package-desc">One-time CV rewrite</div>
-                            </div>
-                        </label>
-                        <label class="package-option">
-                            <input type="radio" name="package" value="pro">
-                            <div class="package-card">
-                                <div class="package-name">Career Pro</div>
-                                <div class="package-price">£299/mo</div>
-                                <div class="package-desc">CV + Applications</div>
-                            </div>
-                        </label>
-                        <label class="package-option">
-                            <input type="radio" name="package" value="complete">
-                            <div class="package-card">
-                                <div class="package-name">Full Service</div>
-                                <div class="package-price">£499/mo</div>
-                                <div class="package-desc">Everything included</div>
-                            </div>
-                        </label>
+                        <div class="package-option">
+                            <input type="radio" id="pkg-starter" name="package" value="starter" required>
+                            <label for="pkg-starter">
+                                CV Starter
+                                <span class="pkg-price">£149</span>
+                                One-time CV rewrite
+                            </label>
+                        </div>
+                        <div class="package-option">
+                            <input type="radio" id="pkg-pro" name="package" value="pro">
+                            <label for="pkg-pro">
+                                Career Pro
+                                <span class="pkg-price">£299/mo</span>
+                                CV + Applications
+                            </label>
+                        </div>
+                        <div class="package-option">
+                            <input type="radio" id="pkg-complete" name="package" value="complete">
+                            <label for="pkg-complete">
+                                Full Service
+                                <span class="pkg-price">£499/mo</span>
+                                Everything included
+                            </label>
+                        </div>
                     </div>
                 </div>
 

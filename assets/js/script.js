@@ -209,11 +209,9 @@ document.querySelectorAll('.faq-question').forEach(btn => {
     });
 });
 
-// ── Package radio selection (visual state) ────────────────────
+// ── Package radio selection (analytics tracking) ─────────────
 document.querySelectorAll('.package-option input[type="radio"]').forEach(radio => {
     radio.addEventListener('change', () => {
-        document.querySelectorAll('.package-option').forEach(opt => opt.classList.remove('selected'));
-        radio.closest('.package-option').classList.add('selected');
         track('package_select', { event_label: radio.value });
     });
 });
