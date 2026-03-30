@@ -829,13 +829,17 @@
 <section id="upload-cv">
     <div class="container">
         <div class="section-header reveal">
-            <span class="label">Get started</span>
-            <h2 class="dmd" style="margin:16px 0 14px">Upload your <span class="gradient-text">CV</span></h2>
-            <p class="body-lg" style="font-size:15px;max-width:480px;margin:0 auto">
-                Send us your current CV and we'll get back to you within 24 hours with a full review and recommended package.
+            <span class="label">Get started today</span>
+            <h2 class="dmd" style="margin:16px 0 14px">Send us your <span class="gradient-text">CV</span></h2>
+            <p class="body-lg" style="font-size:15px;max-width:520px;margin:0 auto">
+                Fill in the form below and we'll get back to you within 2–3 hours. Select your package, share your CV, and we handle the rest.
             </p>
         </div>
-        <div class="form-card reveal">
+        <div class="upload-layout">
+
+        <!-- LEFT: main form -->
+        <div class="upload-form-col reveal-l">
+        <div class="form-card">
             <form id="uploadForm" action="https://formspree.io/f/xykbwpep" method="POST" novalidate>
                 <div class="form-grid">
                     <div class="form-group">
@@ -910,6 +914,16 @@
                     </div>
                 </div>
 
+                <!-- Live package summary — updated by JS on selection -->
+                <div class="pkg-summary" id="pkgSummary" aria-live="polite">
+                    <div class="pkg-summary-meta">
+                        <div class="pkg-summary-label">Selected package</div>
+                        <div class="pkg-summary-name" id="summaryName"></div>
+                        <div class="pkg-summary-note" id="summaryNote"></div>
+                    </div>
+                    <div class="pkg-summary-price" id="summaryPrice"></div>
+                </div>
+
                 <div class="form-group" style="margin-bottom:24px">
                     <label class="form-label" for="cvLink">Share your CV via link</label>
                     <input class="form-input" type="url" id="cvLink" name="cv_link" placeholder="Google Drive, Dropbox, OneDrive or any shareable link">
@@ -928,7 +942,60 @@
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8H13M13 8L9 4M13 8L9 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
                 </button>
             </form>
-        </div>
+        </div><!-- /.form-card -->
+        </div><!-- /.upload-form-col -->
+
+        <!-- RIGHT: trust panel -->
+        <div class="upload-trust-col reveal-r">
+
+            <div class="trust-panel">
+                <div class="trust-panel-title">Why choose CV Plug?</div>
+                <ul class="trust-list">
+                    <li class="trust-item">
+                        <span class="trust-item-icon"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true"><path d="M2 5l2.5 2.5 4-4" stroke="#C49A2A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                        We reply within 2–3 hours, Mon–Sat
+                    </li>
+                    <li class="trust-item">
+                        <span class="trust-item-icon"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true"><path d="M2 5l2.5 2.5 4-4" stroke="#C49A2A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                        48hr turnaround on all packages
+                    </li>
+                    <li class="trust-item">
+                        <span class="trust-item-icon"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true"><path d="M2 5l2.5 2.5 4-4" stroke="#C49A2A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                        Revisions until you're 100% happy
+                    </li>
+                    <li class="trust-item">
+                        <span class="trust-item-icon"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true"><path d="M2 5l2.5 2.5 4-4" stroke="#C49A2A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                        No obligation to proceed after review
+                    </li>
+                    <li class="trust-item">
+                        <span class="trust-item-icon"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true"><path d="M2 5l2.5 2.5 4-4" stroke="#C49A2A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                        Your details are secure &amp; confidential
+                    </li>
+                    <li class="trust-item">
+                        <span class="trust-item-icon"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true"><path d="M2 5l2.5 2.5 4-4" stroke="#C49A2A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                        Free CV review with every enquiry
+                    </li>
+                </ul>
+            </div>
+
+            <div class="upload-stat-block">
+                <div class="upload-stat-n">2,400+</div>
+                <div class="upload-stat-l">careers transformed</div>
+            </div>
+
+            <div class="upload-stat-block" style="background:rgba(16,185,129,0.05);border-color:rgba(16,185,129,0.2)">
+                <div class="upload-stat-n" style="color:#10B981">94%</div>
+                <div class="upload-stat-l">interview success rate</div>
+            </div>
+
+            <p class="not-ready-text">
+                Not ready to upload yet?<br>
+                <a href="#contact" data-track="book_consultation_click">Book a free 15-min consultation instead</a>
+            </p>
+
+        </div><!-- /.upload-trust-col -->
+
+        </div><!-- /.upload-layout -->
     </div>
 </section>
 
@@ -938,8 +1005,11 @@
 <section id="contact">
     <div class="container">
         <div class="section-header reveal">
-            <span class="label">Get in touch</span>
+            <span class="label">Not ready to upload? That's fine.</span>
             <h2 class="dmd" style="margin:16px 0 14px">Book a free <span class="gradient-text">consultation</span></h2>
+            <p class="body-lg" style="font-size:15px;max-width:500px;margin:0 auto">
+                Have questions or want to talk things through first? Send us a message and we'll come back to you within a few hours — no pressure, no obligation.
+            </p>
         </div>
         <div class="contact-layout">
 

@@ -580,6 +580,67 @@ section { position: relative; padding: var(--section-pad) clamp(24px, 6vw, 80px)
 .form-success-text { font-size: 15px; color: var(--text-secondary); }
 
 /* ============================================================
+   UPLOAD CV SECTION — two-column conversion layout
+   ============================================================ */
+#upload-cv { background: var(--bg-subtle); }
+.upload-layout {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 48px;
+    align-items: start;
+}
+
+/* Package summary pill — inside form, updates live */
+.pkg-summary {
+    display: none;
+    align-items: center; justify-content: space-between; gap: 16px;
+    background: rgba(196,154,42,0.06);
+    border: 1px solid rgba(196,154,42,0.3);
+    border-radius: var(--r-md);
+    padding: 16px 20px;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+}
+.pkg-summary.visible { display: flex; }
+.pkg-summary-meta { flex: 1; min-width: 0; }
+.pkg-summary-label { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 3px; }
+.pkg-summary-name { font-family: var(--font-display); font-size: 17px; font-weight: 700; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pkg-summary-note { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+.pkg-summary-price { font-family: var(--font-display); font-size: 28px; font-weight: 700; color: var(--accent); white-space: nowrap; }
+
+/* Trust panel — right column */
+.upload-trust-col { display: flex; flex-direction: column; gap: 20px; position: sticky; top: 100px; }
+.trust-panel {
+    background: var(--bg-card);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--r-lg);
+    padding: 28px 24px;
+}
+.trust-panel-title { font-family: var(--font-display); font-size: 15px; font-weight: 700; margin-bottom: 18px; color: var(--text-primary); }
+.trust-list { display: flex; flex-direction: column; gap: 13px; }
+.trust-item {
+    display: flex; align-items: flex-start; gap: 11px;
+    font-size: 13px; color: var(--text-secondary); line-height: 1.5;
+}
+.trust-item-icon {
+    width: 20px; height: 20px; min-width: 20px; border-radius: 50%;
+    background: rgba(196,154,42,0.1); border: 1px solid rgba(196,154,42,0.25);
+    display: flex; align-items: center; justify-content: center; margin-top: 1px;
+}
+.upload-stat-block {
+    background: linear-gradient(135deg, rgba(196,154,42,0.08), rgba(196,154,42,0.03));
+    border: 1px solid rgba(196,154,42,0.2);
+    border-radius: var(--r-md);
+    padding: 20px 24px;
+    text-align: center;
+}
+.upload-stat-n { font-family: var(--font-display); font-size: 38px; font-weight: 700; color: var(--accent); line-height: 1; }
+.upload-stat-l { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+.not-ready-text { font-size: 13px; color: var(--text-muted); text-align: center; line-height: 1.6; }
+.not-ready-text a { color: var(--accent); text-decoration: none; }
+.not-ready-text a:hover { text-decoration: underline; }
+
+/* ============================================================
    CONTACT SECTION
    ============================================================ */
 #contact { background: var(--bg-subtle); }
@@ -732,6 +793,9 @@ footer { background: var(--bg-subtle); border-top: 1px solid var(--border); padd
 @media (max-width: 1024px) {
     .pricing-grid { grid-template-columns: repeat(2, 1fr); }
     .pricing-grid-2 { grid-template-columns: repeat(2, 1fr); }
+    .upload-layout { grid-template-columns: 1fr; }
+    .upload-trust-col { position: static; order: -1; display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .trust-panel { grid-column: span 2; }
     .faq-layout { grid-template-columns: 1fr; gap: 40px; }
     .contact-layout { grid-template-columns: 1fr; gap: 48px; }
     .foot-top { grid-template-columns: 1fr 1fr; gap: 36px; }
@@ -759,6 +823,8 @@ footer { background: var(--bg-subtle); border-top: 1px solid var(--border); padd
     .int-stats { gap: 10px; }
     .pricing-grid { grid-template-columns: 1fr; max-width: 420px; }
     .pricing-grid-2 { grid-template-columns: 1fr; max-width: 420px; }
+    .upload-trust-col { display: flex; flex-direction: column; }
+    .pkg-summary-price { font-size: 22px; }
     .testimonial-grid { grid-template-columns: 1fr; }
     .form-card { padding: 32px 24px; }
     .form-grid { grid-template-columns: 1fr; }

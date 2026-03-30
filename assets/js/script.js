@@ -237,7 +237,7 @@ document.querySelectorAll('.price-cta[data-package]').forEach(btn => {
         btn.after(payLink);
     }
 
-    // Click: auto-select radio + scroll to form
+    // Click: auto-select radio + update summary + scroll to form
     btn.addEventListener('click', e => {
         e.preventDefault();
         const radio = document.querySelector(`input[name="package"][value="${pkg}"]`);
@@ -245,6 +245,7 @@ document.querySelectorAll('.price-cta[data-package]').forEach(btn => {
             radio.checked = true;
             radio.dispatchEvent(new Event('change'));
         }
+        updatePkgSummary(pkg);
         const target = document.getElementById('upload-cv');
         if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
@@ -264,9 +265,20 @@ document.querySelectorAll('.faq-question').forEach(btn => {
     });
 });
 
-// ── Package radio selection (analytics tracking) ─────────────
+// ── Package radio selection — summary + analytics ─────────────
+function updatePkgSummary(value) {
+    const info = PACKAGES[value];
+    const summary = document.getElementById('pkgSummary');
+    if (!summary || !info) return;
+    document.getElementById('summaryName').textContent  = info.name;
+    document.getElementById('summaryPrice').textContent = info.price;
+    document.getElementById('summaryNote').textContent  = info.note;
+    summary.classList.add('visible');
+}
+
 document.querySelectorAll('.package-option input[type="radio"]').forEach(radio => {
     radio.addEventListener('change', () => {
+        updatePkgSummary(radio.value);
         track('package_select', { event_label: radio.value });
     });
 });
@@ -343,7 +355,25 @@ document.querySelectorAll('.package-option input[type="radio"]').forEach(radio =
     if (uploadForm) {
         uploadForm.addEventListener('submit', async e => {
             e.preventDefault();
-            const selectedPkg = uploadForm.querySelector('[name="package"]:checked')?.value || null;
+
+            // Validate required fields
+            const name  = uploadForm.querySelector('[name="name"]');
+            const email = uploadForm.querySelector('[name="email"]');
+            const pkg   = uploadForm.querySelector('[name="package"]:checked');
+
+            if (!name.value.trim()) { name.focus(); name.style.borderColor = 'rgba(239,68,68,0.6)'; return; }
+            name.style.borderColor = '';
+            if (!email.value.trim() || !email.validity.valid) { email.focus(); email.style.borderColor = 'rgba(239,68,68,0.6)'; return; }
+            email.style.borderColor = '';
+            if (!pkg) {
+                document.getElementById('pkgSummary')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                document.querySelector('.package-options').style.outline = '1px solid rgba(239,68,68,0.5)';
+                document.querySelector('.package-options').style.borderRadius = '12px';
+                setTimeout(() => { document.querySelector('.package-options').style.outline = ''; }, 2500);
+                return;
+            }
+
+            const selectedPkg = pkg.value;
             const btn = uploadForm.querySelector('[type="submit"]');
             btn.disabled = true;
             btn.textContent = 'Submitting…';
