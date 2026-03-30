@@ -745,7 +745,7 @@
             </p>
         </div>
         <div class="form-card reveal">
-            <form id="uploadForm" action="https://formspree.io/f/xykbwpep" method="POST" enctype="multipart/form-data" novalidate>
+            <form id="uploadForm" action="https://formspree.io/f/xykbwpep" method="POST" novalidate>
                 <div class="form-grid">
                     <div class="form-group">
                         <label class="form-label" for="uploadName">Full name *</label>
@@ -796,13 +796,11 @@
                 </div>
 
                 <div class="form-group" style="margin-bottom:24px">
-                    <label class="form-label" for="cvFile">Upload your CV *</label>
-                    <div class="form-file-area" id="fileDropArea" role="button" tabindex="0" aria-label="Click or drag to upload your CV">
-                        <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true"><path d="M14 4v14M14 4L9 9M14 4l5 5" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 20v2a2 2 0 002 2h16a2 2 0 002-2v-2" stroke="var(--text-muted)" stroke-width="1.5" stroke-linecap="round"/></svg>
-                        <span id="fileDropLabel">Click to browse or drag &amp; drop your CV here</span>
-                        <span style="font-size:12px;color:var(--text-muted)">PDF, Word, or any format — max 10MB</span>
-                        <input type="file" id="cvFile" name="cv_file" accept=".pdf,.doc,.docx,.txt,.rtf" style="display:none" required>
-                    </div>
+                    <label class="form-label" for="cvLink">Share your CV via link</label>
+                    <input class="form-input" type="url" id="cvLink" name="cv_link" placeholder="Google Drive, Dropbox, OneDrive or any shareable link">
+                    <p style="font-size:12px;color:var(--text-muted);margin-top:8px;line-height:1.6">
+                        Upload your CV to <a href="https://drive.google.com" target="_blank" rel="noopener noreferrer" style="color:var(--accent);text-decoration:none">Google Drive</a> or <a href="https://www.dropbox.com" target="_blank" rel="noopener noreferrer" style="color:var(--accent);text-decoration:none">Dropbox</a>, set sharing to "Anyone with the link", then paste the link above. You can also send it directly via WhatsApp after submitting.
+                    </p>
                 </div>
 
                 <div class="form-group" style="margin-bottom:32px">
@@ -936,10 +934,10 @@
             </div>
             <h2 class="dmd" style="margin:24px 0 16px">Message received!</h2>
             <p class="body-lg" style="max-width:440px;margin:0 auto 32px;font-size:16px">
-                Thank you for reaching out. We'll review your details and get back to you within 2–3 hours. Keep an eye on your inbox.
+                Thank you — we've received your details and will be in touch within 2–3 hours. If you haven't shared your CV link yet, you can also send your CV directly via WhatsApp.
             </p>
             <a href="https://wa.me/263714679392" class="btn-primary" target="_blank" rel="noopener noreferrer" data-track="whatsapp_click">
-                Also message us on WhatsApp
+                Send CV via WhatsApp
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8H13M13 8L9 4M13 8L9 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
             </a>
         </div>

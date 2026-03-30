@@ -218,42 +218,6 @@ document.querySelectorAll('.package-option input[type="radio"]').forEach(radio =
     });
 });
 
-// ── File drag-drop ────────────────────────────────────────────
-(function () {
-    const area = document.getElementById('fileDropArea');
-    const input = document.getElementById('cvFile');
-    const label = document.getElementById('fileDropLabel');
-    if (!area || !input) return;
-
-    function updateLabel(files) {
-        if (files && files.length) {
-            label.textContent = files[0].name;
-            area.classList.add('has-file');
-        }
-    }
-
-    area.addEventListener('click', () => input.click());
-
-    input.addEventListener('change', () => updateLabel(input.files));
-
-    area.addEventListener('dragover', e => {
-        e.preventDefault();
-        area.classList.add('drag-over');
-    });
-    area.addEventListener('dragleave', () => area.classList.remove('drag-over'));
-    area.addEventListener('drop', e => {
-        e.preventDefault();
-        area.classList.remove('drag-over');
-        const files = e.dataTransfer.files;
-        if (files.length) {
-            // Transfer to input
-            const dt = new DataTransfer();
-            dt.items.add(files[0]);
-            input.files = dt.files;
-            updateLabel(files);
-        }
-    });
-})();
 
 // ── Form submissions ──────────────────────────────────────────
 (function () {
