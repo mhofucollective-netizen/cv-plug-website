@@ -100,6 +100,23 @@ if (timeline) {
     video.pause();
     video.currentTime = 0;
 
+    // Force load on mobile — browsers ignore preload="auto" on cellular
+    video.load();
+
+    // iOS/Android unlock: first scroll or touch triggers a silent play→pause
+    // which allows programmatic currentTime seeks to work without user gesture
+    let videoUnlocked = false;
+    function unlockVideo() {
+        if (videoUnlocked) return;
+        videoUnlocked = true;
+        const p = video.play();
+        if (p !== undefined) {
+            p.then(() => { video.pause(); video.currentTime = 0; }).catch(() => {});
+        }
+    }
+    window.addEventListener('scroll',     unlockVideo, { once: true, passive: true });
+    window.addEventListener('touchstart', unlockVideo, { once: true, passive: true });
+
     const panels = [
         { el: document.getElementById('expPanel1'), show: 0.04, hide: 0.33 },
         { el: document.getElementById('expPanel2'), show: 0.37, hide: 0.65 },

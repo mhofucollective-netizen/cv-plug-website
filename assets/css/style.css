@@ -228,8 +228,8 @@ section { position: relative; padding: var(--section-pad) clamp(24px, 6vw, 80px)
 .exp-card-body { font-size: 13px; line-height: 1.6; color: var(--text-secondary); }
 
 @media (max-width: 900px) {
-    #exploding-view { height: 360vh; }
-    #expVideo { object-fit: contain; }
+    #exploding-view { height: 360vh; background: var(--bg-base); }
+    #expVideo { object-fit: cover; }
     .exp-panel { width: calc(100% - 48px); max-width: 400px; }
     .exp-panel.pos-l, .exp-panel.pos-r { left: 50%; right: auto; top: 72%; transform: translate(-50%, calc(-50% + 24px)); }
     .exp-panel.active.pos-l, .exp-panel.active.pos-r { transform: translateX(-50%) translateY(-50%); }
