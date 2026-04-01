@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://cvplug.co.uk/sitemap.xml
+Sitemap: https://www.cv-plug.com/sitemap.xml
