@@ -291,6 +291,17 @@ document.querySelectorAll('.package-option input[type="radio"]').forEach(radio =
 
 // ── Form submissions ──────────────────────────────────────────
 (function () {
+    const API_BASE = 'https://api.cv-plug.com';
+
+    // Map website package radio values (hyphenated) → API service_type (underscored)
+    const PKG_TO_SERVICE = {
+        'basic-cv':        'basic_cv',
+        'professional-cv': 'professional_cv',
+        'cv-cover-letter': 'cv_cover_letter',
+        'cv-starter':      'cv_starter',
+        'career-pro':      'career_pro',
+        'full-service':    'full_service',
+    };
 
     function showThankYou(selectedPkg) {
         const ty = document.getElementById('thank-you');
@@ -298,15 +309,14 @@ document.querySelectorAll('.package-option input[type="radio"]').forEach(radio =
         ty.classList.add('show');
         ty.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
-        // Populate payment block if a package was selected
-        const pkgInfo = selectedPkg ? PACKAGES[selectedPkg] : null;
+        const pkgInfo  = selectedPkg ? PACKAGES[selectedPkg] : null;
         const stripeUrl = selectedPkg ? STRIPE_LINKS[selectedPkg] : null;
         const block = document.getElementById('tyPaymentBlock');
 
         if (pkgInfo && block) {
-            document.getElementById('tyPkgName').textContent = pkgInfo.name;
+            document.getElementById('tyPkgName').textContent  = pkgInfo.name;
             document.getElementById('tyPkgPrice').textContent = pkgInfo.price;
-            document.getElementById('tyPayNote').textContent = pkgInfo.note;
+            document.getElementById('tyPayNote').textContent  = pkgInfo.note;
 
             const payBtn = document.getElementById('tyPayBtn');
             if (stripeUrl) {
@@ -315,7 +325,6 @@ document.querySelectorAll('.package-option input[type="radio"]').forEach(radio =
                     track('pay_now_click', { event_label: pkgInfo.name });
                 }, { once: true });
             } else {
-                // Stripe link not yet set — hide pay button, show WhatsApp as primary
                 payBtn.style.display = 'none';
                 document.querySelector('.payment-security-note').style.display = 'none';
             }
@@ -323,7 +332,7 @@ document.querySelectorAll('.package-option input[type="radio"]').forEach(radio =
         }
     }
 
-    // Contact form
+    // Contact form → POST /api/leads
     const contactForm = document.getElementById('contactForm');
     if (contactForm) {
         contactForm.addEventListener('submit', async e => {
@@ -332,20 +341,31 @@ document.querySelectorAll('.package-option input[type="radio"]').forEach(radio =
             btn.disabled = true;
             btn.textContent = 'Sending…';
 
+            const fd = new FormData(contactForm);
+            const payload = {
+                full_name:        fd.get('name'),
+                email:            fd.get('email'),
+                source:           'website_contact',
+            };
+            if (fd.get('phone'))   payload.phone            = fd.get('phone');
+            if (fd.get('service')) payload.service_interest = fd.get('service');
+            if (fd.get('message')) payload.message          = fd.get('message');
+
             try {
-                const res = await fetch(contactForm.action, {
+                const res  = await fetch(API_BASE + '/api/leads', {
                     method: 'POST',
-                    body: new FormData(contactForm),
-                    headers: { Accept: 'application/json' }
+                    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+                    body: JSON.stringify(payload),
                 });
-                if (res.ok) {
+                const data = await res.json();
+                if (data.success) {
                     track('contact_form_submit', { event_label: 'contact' });
-                    contactForm.closest('section') && (contactForm.closest('.form-card').style.display = 'none');
+                    contactForm.closest('.form-card').style.display = 'none';
                     showThankYou(null);
                 } else {
                     btn.disabled = false;
                     btn.textContent = 'Send Message';
-                    alert('Something went wrong. Please try again or WhatsApp us directly.');
+                    alert(data.message || 'Something went wrong. Please try again or WhatsApp us directly.');
                 }
             } catch {
                 btn.disabled = false;
@@ -355,13 +375,12 @@ document.querySelectorAll('.package-option input[type="radio"]').forEach(radio =
         });
     }
 
-    // CV upload form
+    // CV upload form → POST /api/orders
     const uploadForm = document.getElementById('uploadForm');
     if (uploadForm) {
         uploadForm.addEventListener('submit', async e => {
             e.preventDefault();
 
-            // Validate required fields
             const name  = uploadForm.querySelector('[name="name"]');
             const email = uploadForm.querySelector('[name="email"]');
             const pkg   = uploadForm.querySelector('[name="package"]:checked');
@@ -383,20 +402,31 @@ document.querySelectorAll('.package-option input[type="radio"]').forEach(radio =
             btn.disabled = true;
             btn.textContent = 'Submitting…';
 
+            const fd = new FormData(uploadForm);
+            const payload = {
+                full_name:     fd.get('name'),
+                email_address: fd.get('email'),
+                service_type:  PKG_TO_SERVICE[selectedPkg] || selectedPkg,
+            };
+            if (fd.get('target_job')) payload.target_job_title = fd.get('target_job');
+            if (fd.get('cv_link'))    payload.cv_link          = fd.get('cv_link');
+            if (fd.get('notes'))      payload.notes            = fd.get('notes');
+
             try {
-                const res = await fetch(uploadForm.action, {
+                const res  = await fetch(API_BASE + '/api/orders', {
                     method: 'POST',
-                    body: new FormData(uploadForm),
-                    headers: { Accept: 'application/json' }
+                    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+                    body: JSON.stringify(payload),
                 });
-                if (res.ok) {
+                const data = await res.json();
+                if (data.success) {
                     track('cv_upload_submit', { event_label: selectedPkg || 'cv_upload' });
                     uploadForm.style.display = 'none';
                     showThankYou(selectedPkg);
                 } else {
                     btn.disabled = false;
                     btn.textContent = 'Submit My CV';
-                    alert('Something went wrong. Please try again or WhatsApp us directly.');
+                    alert(data.message || 'Something went wrong. Please try again or WhatsApp us directly.');
                 }
             } catch {
                 btn.disabled = false;
