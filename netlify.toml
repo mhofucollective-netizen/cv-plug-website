@@ -3,12 +3,25 @@
 [build]
   publish = "."
 
+[[redirects]]
+  from = "http://cv-plug.com/*"
+  to = "https://www.cv-plug.com/:splat"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "https://cv-plug.com/*"
+  to = "https://www.cv-plug.com/:splat"
+  status = 301
+  force = true
+
 [[headers]]
   for = "/*"
   [headers.values]
     X-Frame-Options = "DENY"
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=()"
 
 [[headers]]
   for = "/assets/*"
