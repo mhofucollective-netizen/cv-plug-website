@@ -4,8 +4,20 @@
   publish = "."
 
 [[redirects]]
+  from = "https://cv-plug-website.pages.dev/*"
+  to   = "https://www.cv-plug.com/:splat"
+  status = 301
+  force = true
+
+[[redirects]]
   from = "http://cv-plug.com/*"
   to = "https://www.cv-plug.com/:splat"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "http://www.cv-plug.com/*"
+  to   = "https://www.cv-plug.com/:splat"
   status = 301
   force = true
 
@@ -14,6 +26,16 @@
   to = "https://www.cv-plug.com/:splat"
   status = 301
   force = true
+
+[[redirects]]
+  from = "/manchester"
+  to   = "/#manchester"
+  status = 301
+
+[[redirects]]
+  from = "/ats-scan"
+  to   = "/ats-scan.html"
+  status = 301
 
 [[headers]]
   for = "/*"

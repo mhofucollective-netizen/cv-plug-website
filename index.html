@@ -1600,4 +1600,486 @@
     })();
   </script>
 
-  <!-- STAGE 4 APPENDS BELOW THIS LINE -->
+<style>
+/* ── MANCHESTER SECTION ─────────────────────────────── */
+.manchester {
+  padding: clamp(64px,8vw,120px) 0;
+  background: var(--bg);
+}
+.manchester .section-container { max-width: 1100px; margin: 0 auto; padding: 0 clamp(20px,4vw,48px); }
+.manchester-grid {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 64px;
+  align-items: start;
+  margin-top: 48px;
+}
+.manchester-copy p { color: var(--text-muted); font-family: var(--font-body); font-size: 1.05rem; line-height: 1.8; margin-bottom: 1.2rem; }
+.manchester-copy p strong { color: var(--text); }
+.city-pills { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 28px; }
+.city-pill {
+  font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.06em;
+  color: var(--accent-bright); background: rgba(196,154,42,0.08);
+  border: 1px solid rgba(196,154,42,0.2); border-radius: 100px;
+  padding: 5px 14px;
+}
+.manchester-card {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(196,154,42,0.2);
+  border-radius: 16px;
+  padding: 32px;
+  backdrop-filter: blur(20px);
+  position: sticky;
+  top: 100px;
+}
+.manchester-card-title {
+  font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.12em;
+  color: var(--accent-bright); text-transform: uppercase; margin-bottom: 20px;
+}
+.manchester-card-item {
+  display: flex; align-items: flex-start; gap: 12px;
+  margin-bottom: 16px; color: var(--text-muted);
+  font-family: var(--font-body); font-size: 0.95rem; line-height: 1.5;
+}
+.manchester-card-item .icon { color: var(--accent-bright); flex-shrink: 0; margin-top: 2px; }
+.manchester-card-serving {
+  margin-top: 24px; padding-top: 20px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  font-family: var(--font-mono); font-size: 11px; color: var(--text-muted);
+  line-height: 1.7;
+}
+@media (max-width: 768px) {
+  .manchester-grid { grid-template-columns: 1fr; gap: 40px; }
+  .manchester-card { position: static; }
+}
+
+/* ── EMAIL CAPTURE ──────────────────────────────────── */
+#email-capture {
+  background: linear-gradient(135deg, rgba(196,154,42,0.06) 0%, rgba(196,154,42,0.02) 50%, transparent 100%);
+  border-top: 1px solid rgba(196,154,42,0.15);
+  border-bottom: 1px solid rgba(196,154,42,0.15);
+  padding: clamp(64px,8vw,100px) 0;
+}
+.email-capture-inner {
+  max-width: 1100px; margin: 0 auto; padding: 0 clamp(20px,4vw,48px);
+  display: grid; grid-template-columns: 1fr 420px; gap: 64px; align-items: center;
+}
+.email-capture-benefits { list-style: none; padding: 0; margin: 24px 0 0; }
+.email-capture-benefits li {
+  display: flex; align-items: flex-start; gap: 10px;
+  color: var(--text-muted); font-family: var(--font-body); font-size: 0.95rem;
+  line-height: 1.6; margin-bottom: 10px;
+}
+.email-capture-benefits li::before { content: "✓"; color: var(--accent-bright); font-weight: 700; flex-shrink: 0; }
+.email-capture-form { display: flex; flex-direction: column; gap: 12px; }
+.email-capture-form input[type="email"] {
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12);
+  border-radius: var(--radius); padding: 16px 20px;
+  color: var(--text); font-family: var(--font-body); font-size: 16px;
+  outline: none; transition: border-color 0.2s;
+}
+.email-capture-form input[type="email"]:focus { border-color: var(--accent); }
+.email-capture-form button {
+  background: var(--gold-grad); color: #000; border: none;
+  border-radius: var(--radius); padding: 16px 24px;
+  font-family: var(--font-sans); font-size: 1rem; font-weight: 700;
+  cursor: pointer; transition: opacity 0.2s;
+}
+.email-capture-form button:hover { opacity: 0.88; }
+.email-capture-reassurance { font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+.email-capture-success { display: none; text-align: center; padding: 32px; }
+.email-capture-success .success-check { font-size: 2rem; margin-bottom: 12px; }
+.email-capture-success h3 { color: var(--accent-bright); font-family: var(--font-sans); margin-bottom: 8px; }
+.email-capture-success p { color: var(--text-muted); font-family: var(--font-body); font-size: 0.95rem; }
+.email-capture-success a { color: var(--accent-bright); }
+@media (max-width: 768px) {
+  .email-capture-inner { grid-template-columns: 1fr; gap: 40px; }
+}
+
+/* ── SCROLL CAPTURE BAR ─────────────────────────────── */
+.scroll-capture-bar {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 98;
+  background: rgba(13,13,20,0.97);
+  border-top: 1px solid rgba(196,154,42,0.3);
+  backdrop-filter: blur(20px);
+  padding: 14px clamp(20px,4vw,48px);
+  display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+  transform: translateY(100%);
+  transition: transform 0.5s cubic-bezier(0.16,1,0.3,1);
+}
+.scroll-capture-bar.visible { transform: translateY(0); }
+.scroll-capture-bar p { color: var(--text); font-family: var(--font-body); font-size: 0.9rem; margin: 0; }
+.scroll-capture-bar form { display: flex; gap: 8px; flex: 1; min-width: 280px; }
+.scroll-capture-bar input[type="email"] {
+  flex: 1; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 8px; padding: 10px 14px; color: var(--text);
+  font-family: var(--font-body); font-size: 14px; outline: none;
+}
+.scroll-capture-bar button[type="submit"] {
+  background: var(--gold-grad); color: #000; border: none;
+  border-radius: 8px; padding: 10px 18px;
+  font-family: var(--font-sans); font-size: 0.875rem; font-weight: 700;
+  cursor: pointer; white-space: nowrap;
+}
+.scroll-capture-close {
+  background: none; border: none; color: var(--text-muted);
+  font-size: 1.2rem; cursor: pointer; padding: 4px 8px; line-height: 1;
+}
+@media (max-width: 768px) { .scroll-capture-bar { display: none; } }
+
+/* ── FAQ ────────────────────────────────────────────── */
+.faq { padding: clamp(64px,8vw,120px) 0; background: var(--surface); }
+.faq .section-container { max-width: 760px; margin: 0 auto; padding: 0 clamp(20px,4vw,48px); }
+.faq-list { margin-top: 48px; display: flex; flex-direction: column; gap: 0; }
+.faq-item { border-bottom: 1px solid rgba(255,255,255,0.07); }
+.faq-question {
+  width: 100%; display: flex; justify-content: space-between; align-items: center;
+  gap: 16px; padding: 24px 0; cursor: pointer; background: none; border: none;
+  color: var(--text); font-family: var(--font-sans); font-size: 1.05rem; font-weight: 600;
+  text-align: left;
+}
+.faq-question:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+.faq-icon {
+  flex-shrink: 0; width: 24px; height: 24px;
+  border: 1px solid rgba(196,154,42,0.3); border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--accent-bright); font-size: 1rem; transition: transform 0.3s;
+}
+.faq-item.open .faq-icon { transform: rotate(45deg); }
+.faq-answer {
+  max-height: 0; overflow: hidden;
+  transition: max-height 0.4s cubic-bezier(0.16,1,0.3,1), padding 0.3s;
+  padding: 0;
+}
+.faq-item.open .faq-answer { max-height: 400px; padding-bottom: 24px; }
+.faq-answer p {
+  color: var(--text-muted); font-family: var(--font-body);
+  font-size: 0.975rem; line-height: 1.8; margin: 0;
+}
+
+/* ── FOOTER ─────────────────────────────────────────── */
+footer {
+  background: #090910;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  padding: clamp(48px,6vw,80px) 0 0;
+}
+.footer-inner {
+  max-width: 1100px; margin: 0 auto; padding: 0 clamp(20px,4vw,48px);
+  display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr; gap: 48px;
+}
+.footer-logo {
+  font-family: var(--font-mono); font-size: 1.1rem; font-weight: 700;
+  letter-spacing: 0.12em; color: var(--accent-bright); margin-bottom: 12px;
+}
+.footer-tagline {
+  color: var(--text-muted); font-family: var(--font-body);
+  font-size: 0.9rem; line-height: 1.6; margin-bottom: 16px;
+}
+.footer-email {
+  color: var(--accent-bright); font-family: var(--font-mono);
+  font-size: 0.85rem; text-decoration: none;
+}
+.footer-email:hover { color: var(--text); }
+.footer-col { display: flex; flex-direction: column; gap: 10px; }
+.footer-col-label {
+  font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px;
+}
+.footer-col a, .footer-social a {
+  color: rgba(240,240,248,0.55); font-family: var(--font-body);
+  font-size: 0.9rem; text-decoration: none; transition: color 0.2s;
+}
+.footer-col a:hover, .footer-social a:hover { color: var(--accent-bright); }
+.footer-social { display: flex; flex-direction: column; gap: 10px; }
+.footer-bottom {
+  max-width: 1100px; margin: 48px auto 0; padding: 20px clamp(20px,4vw,48px);
+  border-top: 1px solid rgba(255,255,255,0.05);
+  display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;
+  color: var(--text-muted); font-family: var(--font-mono); font-size: 11px;
+}
+.footer-bottom a { color: var(--text-muted); text-decoration: none; }
+.footer-bottom a:hover { color: var(--accent-bright); }
+@media (max-width: 768px) {
+  .footer-inner { grid-template-columns: 1fr 1fr; gap: 32px; }
+  .footer-brand { grid-column: 1 / -1; }
+  .footer-bottom { flex-direction: column; text-align: center; }
+}
+@media (max-width: 480px) {
+  .footer-inner { grid-template-columns: 1fr; }
+}
+</style>
+
+<!-- MANCHESTER LOCAL SEO -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Service",
+  "serviceType": "CV Writing",
+  "provider": {
+    "@type": "LocalBusiness",
+    "name": "CV Plug",
+    "url": "https://www.cv-plug.com"
+  },
+  "areaServed": [
+    {"@type": "City", "name": "Manchester"},
+    {"@type": "City", "name": "Bolton"},
+    {"@type": "City", "name": "Bury"},
+    {"@type": "City", "name": "Ilkeston"},
+    {"@type": "City", "name": "London"},
+    {"@type": "Country", "name": "United Kingdom"}
+  ],
+  "offers": {
+    "@type": "Offer",
+    "price": "29",
+    "priceCurrency": "GBP"
+  }
+}
+</script>
+
+<section id="manchester" data-ga-section="manchester" class="manchester">
+  <div class="section-container">
+    <span class="section-eyebrow">MANCHESTER &amp; NORTH WEST</span>
+    <h2 class="section-h2">CV writing services in Manchester and beyond.</h2>
+
+    <div class="manchester-grid">
+      <div class="manchester-copy">
+        <p>Whether you're job hunting in the heart of Manchester or searching for CV writing services near me from Bolton, Bury, or further afield — <strong>CV Plug is your professional CV writer Manchester job seekers trust</strong>. We work remotely, so there's no need to visit in person. Just order online and we'll handle the rest.</p>
+        <p>The Manchester job market is competitive across logistics, tech, healthcare, finance, retail, and the NHS. To stand out, your CV needs to do more than list your experience — it needs to pass ATS-optimised screening, catch a recruiter's eye in six seconds, and speak directly to the role you're targeting. That's exactly what we build.</p>
+        <p>Our ATS-optimised CV Manchester clients receive a fully restructured, keyword-matched document written to pass automated screening software used by UK employers. From Salford to Stockport, from Sheffield to London — we serve job seekers across the entire UK, from entry-level to executive, every industry.</p>
+      </div>
+
+      <div class="manchester-card">
+        <div class="manchester-card-title">Local Details</div>
+        <div class="manchester-card-item">
+          <span class="icon">📍</span>
+          <span>Based in Manchester, serving all UK</span>
+        </div>
+        <div class="manchester-card-item">
+          <span class="icon">✉</span>
+          <a href="mailto:hello@cv-plug.com" style="color:var(--accent-bright);text-decoration:none">hello@cv-plug.com</a>
+        </div>
+        <div class="manchester-card-item">
+          <span class="icon">⚡</span>
+          <span>Orders processed Mon–Sat, 9am–9pm</span>
+        </div>
+        <div class="manchester-card-serving">
+          Serving: Manchester · Bolton · Bury · Ilkeston<br>
+          · London · and all UK job seekers
+        </div>
+      </div>
+    </div>
+
+    <div class="city-pills">
+      <span class="city-pill">Manchester</span>
+      <span class="city-pill">Bolton</span>
+      <span class="city-pill">Bury</span>
+      <span class="city-pill">Ilkeston</span>
+      <span class="city-pill">Salford</span>
+      <span class="city-pill">Stockport</span>
+      <span class="city-pill">Leeds</span>
+      <span class="city-pill">Sheffield</span>
+      <span class="city-pill">Liverpool</span>
+      <span class="city-pill">London</span>
+    </div>
+  </div>
+</section>
+
+<!-- EMAIL CAPTURE -->
+<section id="email-capture" data-ga-section="email_capture">
+  <div class="email-capture-inner">
+    <div class="email-capture-copy">
+      <span class="section-eyebrow">FREE RESOURCE</span>
+      <h2 class="section-h2" style="margin-top:12px">The 10-Point ATS Checklist.</h2>
+      <p class="section-subhead" style="margin-top:8px">The exact checklist we run on every CV before delivery. Download it free and see how yours scores right now.</p>
+      <ul class="email-capture-benefits">
+        <li>The 3 formatting rules every ATS requires</li>
+        <li>Which keywords you're probably missing</li>
+        <li>Why your file format might be auto-rejecting you</li>
+        <li>The 6-second human scan — what they actually look at</li>
+      </ul>
+    </div>
+    <div class="email-capture-right">
+      <div id="emailCaptureSuccess" class="email-capture-success">
+        <div class="success-check">✅</div>
+        <h3>On its way!</h3>
+        <p>Check your inbox for the ATS checklist.<br>While you're here — <a href="#pricing">see our packages starting from £29 →</a></p>
+      </div>
+      <form id="emailCaptureForm" class="email-capture-form">
+        <input type="email" id="captureEmail" placeholder="your@email.com" autocomplete="email" required>
+        <button type="submit">Send me the checklist →</button>
+        <p class="email-capture-reassurance">No spam. Unsubscribe any time.</p>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- SCROLL-DEPTH EMAIL BAR -->
+<div class="scroll-capture-bar" id="scrollCaptureBar">
+  <p>📩 Free: The 10-Point ATS Checklist</p>
+  <form id="scrollCaptureForm">
+    <input type="email" id="scrollCaptureEmail" placeholder="your@email.com" autocomplete="email">
+    <button type="submit">Send it →</button>
+  </form>
+  <button class="scroll-capture-close" id="scrollCaptureClose" aria-label="Close">✕</button>
+</div>
+
+<!-- FAQ -->
+<section id="faq" data-ga-section="faq" class="faq">
+  <div class="section-container">
+    <span class="section-eyebrow">FAQ</span>
+    <h2 class="section-h2">Common questions.</h2>
+    <div class="faq-list">
+
+      <div class="faq-item">
+        <button class="faq-question" aria-expanded="false">
+          Do I need to have an existing CV to order?
+          <span class="faq-icon" aria-hidden="true">+</span>
+        </button>
+        <div class="faq-answer">
+          <p>No — we can build your CV entirely from scratch. When ordering, simply skip the upload step and tell us the role you're targeting. We'll handle the rest.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question" aria-expanded="false">
+          How does the 24-hour turnaround work?
+          <span class="faq-icon" aria-hidden="true">+</span>
+        </button>
+        <div class="faq-answer">
+          <p>Place your order before 5pm and we'll deliver your rewritten CV by 5pm the following day. Need it sooner? Our Executive package includes 12-hour turnaround, and rush same-day delivery is available on request — email <a href="mailto:hello@cv-plug.com" style="color:var(--accent-bright)">hello@cv-plug.com</a>.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question" aria-expanded="false">
+          What if I'm not happy with the result?
+          <span class="faq-icon" aria-hidden="true">+</span>
+        </button>
+        <div class="faq-answer">
+          <p>Every package includes revision rounds (1 for Starter, 3 for Professional, unlimited for Executive). If you're still not happy after revisions, get in touch — we'll make it right.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question" aria-expanded="false">
+          Will my CV actually pass ATS software?
+          <span class="faq-icon" aria-hidden="true">+</span>
+        </button>
+        <div class="faq-answer">
+          <p>Yes. ATS optimisation is our core service, not an add-on. We format, keyword-optimise, and structure every CV specifically to pass automated screening systems used by UK employers.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question" aria-expanded="false">
+          Do you write CVs for all industries?
+          <span class="faq-icon" aria-hidden="true">+</span>
+        </button>
+        <div class="faq-answer">
+          <p>Yes — from entry-level to C-suite, across all sectors. We have experience writing CVs for tech, healthcare, finance, logistics, retail, education, NHS, and more. Based in Manchester, serving all UK.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <div class="footer-logo">CV PLUG</div>
+      <p class="footer-tagline">Professional CV writing.<br>Manchester-based. UK-wide.</p>
+      <a href="mailto:hello@cv-plug.com" class="footer-email">hello@cv-plug.com</a>
+    </div>
+
+    <div class="footer-col">
+      <div class="footer-col-label">Services</div>
+      <a href="#pricing">CV Writing</a>
+      <a href="#pricing">Cover Letters</a>
+      <a href="#pricing">LinkedIn Optimisation</a>
+      <a href="#ats-scan">ATS Scan Demo</a>
+    </div>
+
+    <div class="footer-col">
+      <div class="footer-col-label">Company</div>
+      <a href="#how-it-works">How It Works</a>
+      <a href="#manchester">Areas We Cover</a>
+      <a href="#faq">FAQs</a>
+      <a href="#order-form">Contact</a>
+    </div>
+
+    <div class="footer-social">
+      <div class="footer-col-label">Connect</div>
+      <a href="https://www.facebook.com/cvplug" target="_blank" rel="noopener" onclick="gtag('event','outbound_click',{destination:'facebook'})">Facebook</a>
+      <a href="mailto:hello@cv-plug.com" onclick="gtag('event','outbound_click',{destination:'email'})">Email us</a>
+    </div>
+  </div>
+
+  <div class="footer-bottom">
+    <span>© 2026 CV Plug · Manchester, UK</span>
+    <span>
+      <a href="/privacy">Privacy Policy</a> ·
+      <a href="/terms">Terms of Service</a>
+    </span>
+  </div>
+</footer>
+
+<script>
+// Email capture — inline section
+document.getElementById('emailCaptureForm').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const email = document.getElementById('captureEmail').value;
+  if (!email || !email.includes('@')) return;
+  gtag('event', 'email_capture', { lead_magnet: 'ats_checklist', source: 'inline_section' });
+  document.getElementById('emailCaptureForm').style.display = 'none';
+  document.getElementById('emailCaptureSuccess').style.display = 'block';
+});
+
+// Scroll-depth bar — 60%, once per session
+let scrollCaptureShown = false;
+window.addEventListener('scroll', () => {
+  if (scrollCaptureShown) return;
+  const scrollPct = window.scrollY / (document.body.scrollHeight - window.innerHeight);
+  if (scrollPct > 0.60) {
+    scrollCaptureShown = true;
+    document.getElementById('scrollCaptureBar').classList.add('visible');
+    gtag('event', 'email_capture_prompt_shown', { trigger: 'scroll_60' });
+  }
+}, { passive: true });
+
+document.getElementById('scrollCaptureClose').addEventListener('click', () => {
+  document.getElementById('scrollCaptureBar').classList.remove('visible');
+});
+
+document.getElementById('scrollCaptureForm').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const email = document.getElementById('scrollCaptureEmail').value;
+  if (!email || !email.includes('@')) return;
+  gtag('event', 'email_capture', { lead_magnet: 'ats_checklist', source: 'scroll_trigger' });
+  document.getElementById('scrollCaptureBar').innerHTML =
+    '<p style="color:var(--accent-bright);font-family:var(--font-mono);font-size:13px">✓ Checklist sent! Check your inbox.</p>';
+  setTimeout(() => {
+    document.getElementById('scrollCaptureBar').classList.remove('visible');
+  }, 3000);
+});
+
+// FAQ accordion
+document.querySelectorAll('.faq-question').forEach(q => {
+  q.addEventListener('click', () => {
+    const item = q.parentElement;
+    const isOpen = item.classList.contains('open');
+    document.querySelectorAll('.faq-item').forEach(i => {
+      i.classList.remove('open');
+      i.querySelector('.faq-question').setAttribute('aria-expanded', 'false');
+    });
+    if (!isOpen) {
+      item.classList.add('open');
+      q.setAttribute('aria-expanded', 'true');
+    }
+  });
+});
+</script>
+
+</body>
+</html>
