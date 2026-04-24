@@ -291,7 +291,7 @@ document.querySelectorAll('.package-option input[type="radio"]').forEach(radio =
 
 // ── Form submissions ──────────────────────────────────────────
 (function () {
-    const API_BASE = 'https://api.cv-plug.com';
+    const API_BASE = '/.netlify/functions';
 
     // Map website package radio values (hyphenated) → API service_type (underscored)
     const PKG_TO_SERVICE = {
@@ -343,16 +343,16 @@ document.querySelectorAll('.package-option input[type="radio"]').forEach(radio =
 
             const fd = new FormData(contactForm);
             const payload = {
-                full_name:        fd.get('name'),
-                email:            fd.get('email'),
-                source:           'website_contact',
+                name:    fd.get('name'),
+                email:   fd.get('email'),
+                source:  'website_contact',
             };
             if (fd.get('phone'))   payload.phone            = fd.get('phone');
             if (fd.get('service')) payload.service_interest = fd.get('service');
             if (fd.get('message')) payload.message          = fd.get('message');
 
             try {
-                const res  = await fetch(API_BASE + '/api/leads', {
+                const res  = await fetch(API_BASE + '/send-email', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
                     body: JSON.stringify(payload),
@@ -413,7 +413,7 @@ document.querySelectorAll('.package-option input[type="radio"]').forEach(radio =
             if (fd.get('notes'))      payload.notes            = fd.get('notes');
 
             try {
-                const res  = await fetch(API_BASE + '/api/orders', {
+                const res  = await fetch(API_BASE + '/send-email', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
                     body: JSON.stringify(payload),

@@ -2,6 +2,7 @@
 
 [build]
   publish = "."
+  functions = "functions"
 
 [[redirects]]
   from = "https://cv-plug-website.pages.dev/*"
