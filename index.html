@@ -1485,6 +1485,20 @@
         source:        'website_order',
       };
 
+      const fileInput = document.getElementById('cvUpload');
+      if (fileInput.files.length > 0) {
+        const file = fileInput.files[0];
+        try {
+          payload.cv_file_base64 = await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result.split(',')[1]);
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+          });
+          payload.cv_filename = file.name;
+        } catch (_) {}
+      }
+
       try {
         await fetch('/.netlify/functions/send-email', {
           method: 'POST',
@@ -1748,7 +1762,7 @@
   background: none; border: none; color: var(--text-muted);
   font-size: 1.2rem; cursor: pointer; padding: 4px 8px; line-height: 1;
 }
-@media (max-width: 768px) { .scroll-capture-bar { display: none; } }
+@media (max-width: 768px) { .scroll-capture-bar { padding: 12px 16px; gap: 10px; } .scroll-capture-bar p { font-size: 0.8rem; } }
 
 /* ── FAQ ────────────────────────────────────────────── */
 .faq { padding: clamp(64px,8vw,120px) 0; background: var(--surface); }

@@ -83,7 +83,7 @@ exports.handler = async (event) => {
     return { statusCode: 400, body: JSON.stringify({ error: 'Invalid JSON' }) };
   }
 
-  const { name, full_name, email, email_address, message, service_type, source } = body;
+  const { name, full_name, email, email_address, message, service_type, source, cv_file_base64, cv_filename } = body;
 
   const senderName  = name || full_name || 'Unknown';
   const senderEmail = email || email_address || '';
@@ -118,9 +118,10 @@ exports.handler = async (event) => {
     Email:    senderEmail,
     ...(service_type && { 'Service':  service_type }),
     ...(message      && { 'Message':  message }),
+    ...(cv_filename && { 'CV File': cv_filename }),
     ...Object.fromEntries(
       Object.entries(body).filter(([k]) =>
-        !['name','full_name','email','email_address','message','service_type','source'].includes(k) && body[k]
+        !['name','full_name','email','email_address','message','service_type','source','cv_file_base64','cv_filename'].includes(k) && body[k]
       )
     ),
   };
@@ -134,15 +135,20 @@ exports.handler = async (event) => {
     senderEmail,
   });
 
+  const cvAttachment = cv_file_base64
+    ? [{ filename: cv_filename || 'cv.pdf', content: Buffer.from(cv_file_base64, 'base64') }]
+    : [];
+
   let notifSent = false;
   try {
     await transporter.sendMail({
-      from:    `"CV Plug Website" <hello@cv-plug.com>`,
-      to:      'hello@cv-plug.com',
-      subject: isOrder
+      from:        `"CV Plug Website" <hello@cv-plug.com>`,
+      to:          'hello@cv-plug.com',
+      subject:     isOrder
         ? `New CV order — ${senderName} (${service_type || 'unknown package'})`
         : `New contact enquiry — ${senderName}`,
-      html:    notificationHtml(notifData),
+      html:        notificationHtml(notifData),
+      attachments: cvAttachment,
     });
     notifSent = true;
   } catch (err) {
@@ -152,12 +158,13 @@ exports.handler = async (event) => {
   let confirmSent = false;
   try {
     await transporter.sendMail({
-      from:    `"CV Plug" <hello@cv-plug.com>`,
-      to:      senderEmail,
-      subject: isOrder
+      from:        `"CV Plug" <hello@cv-plug.com>`,
+      to:          senderEmail,
+      subject:     isOrder
         ? `We've received your CV order, ${senderName.split(' ')[0]}!`
         : `Thanks for getting in touch, ${senderName.split(' ')[0]}!`,
-      html:    confirmationHtml(senderName, isOrder ? 'website_order' : 'website_contact'),
+      html:        confirmationHtml(senderName, isOrder ? 'website_order' : 'website_contact'),
+      attachments: cvAttachment,
     });
     confirmSent = true;
   } catch (err) {
