@@ -84,38 +84,49 @@ exports.handler = async (event) => {
     senderEmail,
   });
 
+  let notifSent = false;
   try {
-    await Promise.all([
-      transporter.sendMail({
-        from:    `"CV Plug Website" <hello@cv-plug.com>`,
-        to:      'hello@cv-plug.com',
-        subject: isOrder
-          ? `New CV order — ${senderName} (${service_type || 'unknown package'})`
-          : `New contact enquiry — ${senderName}`,
-        html:    notificationHtml(notifData),
-      }),
-      transporter.sendMail({
-        from:    `"CV Plug" <hello@cv-plug.com>`,
-        to:      senderEmail,
-        subject: isOrder
-          ? `We've received your CV order, ${senderName.split(' ')[0]}!`
-          : `Thanks for getting in touch, ${senderName.split(' ')[0]}!`,
-        html:    confirmationHtml(senderName, isOrder ? 'website_order' : 'website_contact'),
-      }),
-    ]);
-
-    console.log('[send-email] success — both emails sent');
-    return {
-      statusCode: 200,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ success: true, message: 'Emails sent.' }),
-    };
+    await transporter.sendMail({
+      from:    `"CV Plug Website" <hello@cv-plug.com>`,
+      to:      'hello@cv-plug.com',
+      subject: isOrder
+        ? `New CV order — ${senderName} (${service_type || 'unknown package'})`
+        : `New contact enquiry — ${senderName}`,
+      html:    notificationHtml(notifData),
+    });
+    notifSent = true;
   } catch (err) {
-    console.error('[send-email] SMTP error:', JSON.stringify(err, Object.getOwnPropertyNames(err)));
+    console.error('[send-email] notification email failed:', JSON.stringify(err, Object.getOwnPropertyNames(err)));
+  }
+
+  let confirmSent = false;
+  try {
+    await transporter.sendMail({
+      from:    `"CV Plug" <hello@cv-plug.com>`,
+      to:      senderEmail,
+      subject: isOrder
+        ? `We've received your CV order, ${senderName.split(' ')[0]}!`
+        : `Thanks for getting in touch, ${senderName.split(' ')[0]}!`,
+      html:    confirmationHtml(senderName, isOrder ? 'website_order' : 'website_contact'),
+    });
+    confirmSent = true;
+  } catch (err) {
+    console.error('[send-email] confirmation email failed:', JSON.stringify(err, Object.getOwnPropertyNames(err)));
+  }
+
+  console.log(`[send-email] done — notif:${notifSent} confirm:${confirmSent}`);
+
+  if (!notifSent) {
     return {
       statusCode: 500,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ success: false, message: 'Failed to send email. Please try again or contact us directly.' }),
     };
   }
+
+  return {
+    statusCode: 200,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ success: true, message: 'Emails sent.' }),
+  };
 };
