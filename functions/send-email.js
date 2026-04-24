@@ -75,6 +75,15 @@ exports.handler = async (event) => {
     ),
   };
 
+  console.log('[send-email] invoked', {
+    host: process.env.SMTP_HOST || 'smtp.ionos.co.uk',
+    port: process.env.SMTP_PORT || '587',
+    user: process.env.SMTP_USER || 'hello@cv-plug.com',
+    passLen: process.env.SMTP_PASS ? process.env.SMTP_PASS.length : 0,
+    isOrder,
+    senderEmail,
+  });
+
   try {
     await Promise.all([
       transporter.sendMail({
@@ -95,13 +104,14 @@ exports.handler = async (event) => {
       }),
     ]);
 
+    console.log('[send-email] success — both emails sent');
     return {
       statusCode: 200,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ success: true, message: 'Emails sent.' }),
     };
   } catch (err) {
-    console.error('SMTP error:', err.message);
+    console.error('[send-email] SMTP error:', JSON.stringify(err, Object.getOwnPropertyNames(err)));
     return {
       statusCode: 500,
       headers: { 'Content-Type': 'application/json' },
