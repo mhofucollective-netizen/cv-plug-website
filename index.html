@@ -2050,10 +2050,19 @@ footer {
 
 <script>
 // Email capture — inline section
-document.getElementById('emailCaptureForm').addEventListener('submit', (e) => {
+document.getElementById('emailCaptureForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const email = document.getElementById('captureEmail').value;
   if (!email || !email.includes('@')) return;
+  const btn = e.target.querySelector('button');
+  btn.disabled = true; btn.textContent = 'Sending…';
+  try {
+    await fetch('/.netlify/functions/send-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, source: 'ats_checklist' }),
+    });
+  } catch (_) {}
   gtag('event', 'email_capture', { lead_magnet: 'ats_checklist', source: 'inline_section' });
   document.getElementById('emailCaptureForm').style.display = 'none';
   document.getElementById('emailCaptureSuccess').style.display = 'block';
@@ -2075,10 +2084,17 @@ document.getElementById('scrollCaptureClose').addEventListener('click', () => {
   document.getElementById('scrollCaptureBar').classList.remove('visible');
 });
 
-document.getElementById('scrollCaptureForm').addEventListener('submit', (e) => {
+document.getElementById('scrollCaptureForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const email = document.getElementById('scrollCaptureEmail').value;
   if (!email || !email.includes('@')) return;
+  try {
+    await fetch('/.netlify/functions/send-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, source: 'ats_checklist' }),
+    });
+  } catch (_) {}
   gtag('event', 'email_capture', { lead_magnet: 'ats_checklist', source: 'scroll_trigger' });
   document.getElementById('scrollCaptureBar').innerHTML =
     '<p style="color:var(--accent-bright);font-family:var(--font-mono);font-size:13px">✓ Checklist sent! Check your inbox.</p>';
