@@ -1304,14 +1304,14 @@
         </div>
         <div class="form-group">
           <label for="cvUpload">Upload Your Current CV <span class="label-optional">(optional)</span></label>
-          <div class="upload-zone" id="uploadZone">
+          <label class="upload-zone" id="uploadZone" for="cvUpload">
             <input type="file" id="cvUpload" name="cvUpload" accept=".pdf,.doc,.docx,.txt">
             <div class="upload-inner">
               <p class="upload-title">Drop your CV here or click to browse</p>
               <p class="upload-sub">Already have a CV? Upload it to get started faster. Starting from scratch? No problem — skip this and we'll build from scratch.</p>
               <p class="upload-formats">.PDF · .DOC · .DOCX · .TXT accepted</p>
             </div>
-          </div>
+          </label>
           <div class="upload-selected" id="uploadSelected" style="display:none">
             <span id="uploadFileName"></span>
             <button type="button" id="uploadClear">✕ Remove</button>
@@ -1443,8 +1443,7 @@
       if (!window._formStarted) { window._formStarted = true; gtag('event', 'form_start', { form_id: 'order_form' }); }
     }, { once: true });
 
-    document.getElementById('uploadZone').addEventListener('click', () => { document.getElementById('cvUpload').click(); });
-    document.getElementById('cvUpload').addEventListener('change', (e) => {
+document.getElementById('cvUpload').addEventListener('change', (e) => {
       if (e.target.files.length > 0) {
         document.getElementById('uploadFileName').textContent = e.target.files[0].name;
         document.getElementById('uploadSelected').style.display = 'flex';
