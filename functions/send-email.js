@@ -136,8 +136,10 @@ exports.handler = async (event) => {
     cvFile: cv_file_base64 ? `${cv_filename} (${Math.round(cv_file_base64.length / 1024)} KB base64)` : 'none',
   });
 
+  const MIME = { pdf: 'application/pdf', doc: 'application/msword', docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', txt: 'text/plain' };
+  const ext = (cv_filename || '').split('.').pop().toLowerCase();
   const cvAttachment = cv_file_base64
-    ? [{ filename: cv_filename || 'cv.pdf', content: Buffer.from(cv_file_base64, 'base64') }]
+    ? [{ filename: cv_filename || 'cv.pdf', content: Buffer.from(cv_file_base64, 'base64'), contentType: MIME[ext] || 'application/octet-stream' }]
     : [];
 
   let notifSent = false;
