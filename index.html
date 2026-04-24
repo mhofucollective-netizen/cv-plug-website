@@ -1462,7 +1462,7 @@
       if (pkg) { const r = document.querySelector(`input[name="package"][value="${pkg}"]`); if (r) r.checked = true; }
     });
 
-    document.getElementById('cvOrderForm').addEventListener('submit', (e) => {
+    document.getElementById('cvOrderForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       if (!validateOrderForm()) return;
       const pkg = document.querySelector('[name="package"]:checked');
@@ -1470,6 +1470,29 @@
       const pkgPrice = parseInt(pkg?.dataset.price || 0);
       const email = document.getElementById('email').value;
       const hasFile = document.getElementById('cvUpload').files.length > 0;
+
+      const submitBtn = document.getElementById('cvOrderForm').querySelector('[type="submit"]');
+      if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Submitting…'; }
+
+      const PKG_MAP = { 'basic-cv':'basic_cv','professional-cv':'professional_cv','cv-cover-letter':'cv_cover_letter','cv-starter':'cv_starter','career-pro':'career_pro','full-service':'full_service' };
+      const payload = {
+        full_name:     document.getElementById('fullName')?.value || '',
+        email_address: email,
+        service_type:  PKG_MAP[pkgName] || pkgName,
+        target_job_title: document.getElementById('targetRole')?.value || '',
+        cv_link:       document.getElementById('cvLink')?.value || undefined,
+        notes:         document.getElementById('notes')?.value || undefined,
+        source:        'website_order',
+      };
+
+      try {
+        await fetch('/.netlify/functions/send-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+      } catch (_) {}
+
       gtag('event', 'cv_upload_submit', { package: pkgName, has_file: hasFile });
       gtag('event', 'contact_form_submit', { form_id: 'order_form' });
       gtag('event', 'purchase', { transaction_id: Date.now().toString(), value: pkgPrice, currency: 'GBP', items: [{ item_name: pkgName, price: pkgPrice, quantity: 1 }] });
