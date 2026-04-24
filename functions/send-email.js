@@ -133,6 +133,7 @@ exports.handler = async (event) => {
     passLen: process.env.SMTP_PASS ? process.env.SMTP_PASS.length : 0,
     isOrder,
     senderEmail,
+    cvFile: cv_file_base64 ? `${cv_filename} (${Math.round(cv_file_base64.length / 1024)} KB base64)` : 'none',
   });
 
   const cvAttachment = cv_file_base64

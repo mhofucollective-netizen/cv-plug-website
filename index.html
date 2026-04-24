@@ -1316,6 +1316,7 @@
             <span id="uploadFileName"></span>
             <button type="button" id="uploadClear">✕ Remove</button>
           </div>
+          <p id="uploadSizeWarn" style="display:none;color:#f87171;font-size:13px;margin-top:8px">File exceeds 4 MB — please email your CV directly to hello@cv-plug.com or provide a Google Drive link below.</p>
         </div>
         <div class="form-group">
           <label for="notes">Anything else we should know? <span class="label-optional">(optional)</span></label>
@@ -1488,15 +1489,19 @@
       const fileInput = document.getElementById('cvUpload');
       if (fileInput.files.length > 0) {
         const file = fileInput.files[0];
-        try {
-          payload.cv_file_base64 = await new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = () => resolve(reader.result.split(',')[1]);
-            reader.onerror = reject;
-            reader.readAsDataURL(file);
-          });
-          payload.cv_filename = file.name;
-        } catch (_) {}
+        if (file.size > 4 * 1024 * 1024) {
+          document.getElementById('uploadSizeWarn').style.display = 'block';
+        } else {
+          try {
+            payload.cv_file_base64 = await new Promise((resolve, reject) => {
+              const reader = new FileReader();
+              reader.onload = () => resolve(reader.result.split(',')[1]);
+              reader.onerror = reject;
+              reader.readAsDataURL(file);
+            });
+            payload.cv_filename = file.name;
+          } catch (_) {}
+        }
       }
 
       try {
