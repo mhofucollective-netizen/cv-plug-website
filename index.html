@@ -759,7 +759,17 @@
     .r-time { font-family:var(--font-mono);font-size:10px;color:var(--text-muted);display:block; }
     .upload-zone { border:1.5px dashed rgba(196,154,42,0.28);border-radius:12px;padding:28px 20px;text-align:center;cursor:pointer;transition:border-color 0.25s,background 0.25s;background:rgba(196,154,42,0.025); }
     .upload-zone:hover { border-color:rgba(196,154,42,0.5);background:rgba(196,154,42,0.05); }
-    .upload-zone input { display:none; }
+    .upload-zone input[type="file"] {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0,0,0,0);
+      white-space: nowrap;
+      border: 0;
+    }
     .upload-title { font-weight:600;margin-bottom:8px; }
     .upload-sub { font-size:13px;color:var(--text-secondary);line-height:1.5;margin-bottom:8px; }
     .upload-formats { font-family:var(--font-mono);font-size:10px;color:var(--text-muted);letter-spacing:0.1em; }
@@ -1304,6 +1314,7 @@
         </div>
         <div class="form-group">
           <label for="cvUpload">Upload Your Current CV <span class="label-optional">(optional)</span></label>
+          <div class="upload-wrap">
           <label class="upload-zone" id="uploadZone" for="cvUpload">
             <input type="file" id="cvUpload" name="cvUpload" accept=".pdf,.doc,.docx,.txt">
             <div class="upload-inner">
@@ -1316,7 +1327,8 @@
             <span id="uploadFileName"></span>
             <button type="button" id="uploadClear">✕ Remove</button>
           </div>
-          <p id="uploadSizeWarn" style="display:none;color:#f87171;font-size:13px;margin-top:8px">File exceeds 4 MB — please email your CV directly to hello@cv-plug.com or provide a Google Drive link below.</p>
+          <p id="uploadSizeWarn" style="display:none;color:#f87171;font-size:13px;margin-top:8px">File exceeds 3 MB — please email your CV directly to hello@cv-plug.com or provide a Google Drive link below.</p>
+          </div>
         </div>
         <div class="form-group">
           <label for="notes">Anything else we should know? <span class="label-optional">(optional)</span></label>
@@ -1465,59 +1477,81 @@ document.getElementById('cvUpload').addEventListener('change', (e) => {
     document.getElementById('cvOrderForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       if (!validateOrderForm()) return;
+
+      const submitBtn = cvOrderForm.querySelector('[type="submit"]');
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Sending…';
+
       const pkg = document.querySelector('[name="package"]:checked');
       const pkgName = pkg?.value || 'Unknown';
       const pkgPrice = parseInt(pkg?.dataset.price || 0);
       const email = document.getElementById('email').value;
-      const hasFile = document.getElementById('cvUpload').files.length > 0;
-
-      const submitBtn = document.getElementById('cvOrderForm').querySelector('[type="submit"]');
-      if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Submitting…'; }
 
       const PKG_MAP = { 'basic-cv':'basic_cv','professional-cv':'professional_cv','cv-cover-letter':'cv_cover_letter','cv-starter':'cv_starter','career-pro':'career_pro','full-service':'full_service' };
       const payload = {
-        full_name:     document.getElementById('fullName')?.value || '',
-        email_address: email,
-        service_type:  PKG_MAP[pkgName] || pkgName,
+        full_name:        document.getElementById('fullName')?.value || '',
+        email_address:    email,
+        service_type:     PKG_MAP[pkgName] || pkgName,
         target_job_title: document.getElementById('targetRole')?.value || '',
-        cv_link:       document.getElementById('cvLink')?.value || undefined,
-        notes:         document.getElementById('notes')?.value || undefined,
-        source:        'website_order',
+        cv_link:          document.getElementById('cvLink')?.value || undefined,
+        notes:            document.getElementById('notes')?.value || undefined,
+        source:           'website_order',
       };
 
       const fileInput = document.getElementById('cvUpload');
-      if (fileInput.files.length > 0) {
-        const file = fileInput.files[0];
-        if (file.size > 4 * 1024 * 1024) {
-          document.getElementById('uploadSizeWarn').style.display = 'block';
-        } else {
-          try {
-            payload.cv_file_base64 = await new Promise((resolve, reject) => {
-              const reader = new FileReader();
-              reader.onload = () => resolve(reader.result.split(',')[1]);
-              reader.onerror = reject;
-              reader.readAsDataURL(file);
-            });
-            payload.cv_filename = file.name;
-          } catch (_) {}
+      const file = fileInput?.files?.[0];
+
+      if (file) {
+        if (file.size > 3 * 1024 * 1024) {
+          alert('File exceeds 3 MB. Please email it to hello@cv-plug.com or paste a Google Drive link in the notes.');
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Submit My Order →';
+          return;
         }
+        try {
+          payload.cv_file_base64 = await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload  = () => resolve(String(reader.result).split(',')[1]);
+            reader.onerror = () => reject(reader.error);
+            reader.readAsDataURL(file);
+          });
+          payload.cv_filename = file.name;
+          console.log('[cvplug] attaching', file.name, file.size, 'bytes');
+        } catch (err) {
+          console.error('[cvplug] FileReader failed', err);
+          alert('Could not read the file. Try a different one or email it directly.');
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Submit My Order →';
+          return;
+        }
+      } else {
+        console.log('[cvplug] no file selected');
       }
 
       try {
-        await fetch('/.netlify/functions/send-email', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
+        const res = await fetch('/.netlify/functions/send-email', {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+          body:    JSON.stringify(payload),
         });
-      } catch (_) {}
-
-      gtag('event', 'cv_upload_submit', { package: pkgName, has_file: hasFile });
-      gtag('event', 'contact_form_submit', { form_id: 'order_form' });
-      gtag('event', 'purchase', { transaction_id: Date.now().toString(), value: pkgPrice, currency: 'GBP', items: [{ item_name: pkgName, price: pkgPrice, quantity: 1 }] });
-      document.getElementById('cvOrderForm').style.display = 'none';
-      document.getElementById('formSuccess').style.display = 'block';
-      document.getElementById('successEmail').textContent = `Confirmation sent to: ${email}`;
-      document.getElementById('formSuccess').scrollIntoView({ behavior: 'smooth' });
+        const data = await res.json();
+        if (data.success) {
+          gtag('event', 'cv_upload_submit', { package: pkgName, has_file: !!file });
+          gtag('event', 'contact_form_submit', { form_id: 'order_form' });
+          gtag('event', 'purchase', { transaction_id: Date.now().toString(), value: pkgPrice, currency: 'GBP', items: [{ item_name: pkgName, price: pkgPrice, quantity: 1 }] });
+          document.getElementById('cvOrderForm').style.display = 'none';
+          document.getElementById('formSuccess').style.display = 'block';
+          document.getElementById('successEmail').textContent = `Confirmation sent to: ${email}`;
+          document.getElementById('formSuccess').scrollIntoView({ behavior: 'smooth' });
+        } else {
+          throw new Error(data.message || 'send failed');
+        }
+      } catch (err) {
+        console.error('[cvplug] submit failed', err);
+        alert('Something went wrong. Please email hello@cv-plug.com or try again.');
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Submit My Order →';
+      }
     });
 
     function validateOrderForm() {
