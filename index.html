@@ -1502,24 +1502,59 @@ document.getElementById('cvUpload').addEventListener('change', (e) => {
       const file = fileInput?.files?.[0];
 
       if (file) {
+        if (file.size === 0) {
+          alert('That file looks empty (0 bytes). Pick a different one or email it to hello@cv-plug.com.');
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Submit My Order →';
+          return;
+        }
         if (file.size > 3 * 1024 * 1024) {
           alert('File exceeds 3 MB. Please email it to hello@cv-plug.com or paste a Google Drive link in the notes.');
           submitBtn.disabled = false;
           submitBtn.textContent = 'Submit My Order →';
           return;
         }
+
+        async function readAsBase64(f) {
+          // Wrap in a fresh Blob — fixes iOS Safari iCloud-Photos quirk
+          const blob = new Blob([f], { type: f.type || 'application/octet-stream' });
+          // Try FileReader first
+          try {
+            return await new Promise((resolve, reject) => {
+              const reader = new FileReader();
+              reader.onload  = () => {
+                const r = String(reader.result || '');
+                const b64 = r.includes(',') ? r.split(',')[1] : '';
+                b64 ? resolve(b64) : reject(new Error('FileReader returned empty result'));
+              };
+              reader.onerror = () => reject(reader.error || new Error('FileReader.onerror fired'));
+              reader.onabort = () => reject(new Error('FileReader aborted'));
+              reader.readAsDataURL(blob);
+            });
+          } catch (e1) {
+            // Fallback: arrayBuffer + chunked btoa (iOS Safari 14+, modern Android)
+            try {
+              const buf = await blob.arrayBuffer();
+              const bytes = new Uint8Array(buf);
+              let bin = '';
+              const CHUNK = 0x8000;
+              for (let i = 0; i < bytes.length; i += CHUNK) {
+                bin += String.fromCharCode.apply(null, bytes.subarray(i, i + CHUNK));
+              }
+              return btoa(bin);
+            } catch (e2) {
+              throw new Error('reader: ' + (e1.message || e1) + ' | buffer: ' + (e2.message || e2));
+            }
+          }
+        }
+
         try {
-          payload.cv_file_base64 = await new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload  = () => resolve(String(reader.result).split(',')[1]);
-            reader.onerror = () => reject(reader.error);
-            reader.readAsDataURL(file);
-          });
+          payload.cv_file_base64 = await readAsBase64(file);
           payload.cv_filename = file.name;
-          console.log('[cvplug] attaching', file.name, file.size, 'bytes');
+          console.log('[cvplug] attaching', file.name, file.size, 'bytes,', payload.cv_file_base64.length, 'b64 chars');
         } catch (err) {
-          console.error('[cvplug] FileReader failed', err);
-          alert('Could not read the file. Try a different one or email it directly.');
+          console.error('[cvplug] file read failed', err);
+          alert('Could not read the file: ' + (err && err.message ? err.message : 'unknown error') + '\n\nTry a different file or email hello@cv-plug.com.');
           submitBtn.disabled = false;
           submitBtn.textContent = 'Submit My Order →';
           return;
