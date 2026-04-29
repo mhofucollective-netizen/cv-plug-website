@@ -1,4 +1,5 @@
 const nodemailer = require('nodemailer');
+const Busboy = require('busboy');
 
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST || 'smtp.ionos.co.uk',
@@ -9,6 +10,35 @@ const transporter = nodemailer.createTransport({
     pass: process.env.SMTP_PASS,
   },
 });
+
+function parseMultipart(event) {
+  return new Promise((resolve, reject) => {
+    const fields = {};
+    let file = null;
+
+    const rawBody = event.isBase64Encoded
+      ? Buffer.from(event.body, 'base64')
+      : Buffer.from(event.body, 'utf8');
+
+    const bb = Busboy({
+      headers: { 'content-type': event.headers['content-type'] || event.headers['Content-Type'] || '' },
+    });
+
+    bb.on('field', (name, val) => { fields[name] = val; });
+    bb.on('file', (name, stream, info) => {
+      const chunks = [];
+      stream.on('data', d => chunks.push(d));
+      stream.on('end', () => {
+        file = { buffer: Buffer.concat(chunks), filename: info.filename, mimetype: info.mimeType };
+      });
+    });
+    bb.on('close', () => resolve({ fields, file }));
+    bb.on('error', reject);
+
+    bb.write(rawBody);
+    bb.end();
+  });
+}
 
 function notificationHtml(data) {
   const rows = Object.entries(data)
@@ -71,11 +101,122 @@ function confirmationHtml(name, source) {
     </div>`;
 }
 
+async function handleMultipart(event) {
+  const { fields, file } = await parseMultipart(event);
+
+  const senderName  = fields.fullName || 'Unknown';
+  const senderEmail = fields.email || '';
+  const serviceType = fields.package || '';
+  const source      = fields.source || 'website_order';
+  const isOrder     = source === 'website_order' || !!serviceType;
+  const isChecklist = source === 'ats_checklist';
+
+  if (!senderEmail) {
+    return { statusCode: 400, body: JSON.stringify({ success: false, message: 'Email address is required.' }) };
+  }
+
+  if (isChecklist) {
+    console.log('[send-email] checklist request (multipart)', { senderEmail });
+    try {
+      await transporter.sendMail({
+        from:    `"CV Plug" <hello@cv-plug.com>`,
+        to:      senderEmail,
+        subject: 'Your 10-Point ATS Checklist — CV Plug',
+        html:    checklistHtml(),
+      });
+      console.log('[send-email] checklist sent to', senderEmail);
+      return { statusCode: 200, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ success: true }) };
+    } catch (err) {
+      console.error('[send-email] checklist email failed:', JSON.stringify(err, Object.getOwnPropertyNames(err)));
+      return { statusCode: 500, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ success: false }) };
+    }
+  }
+
+  const cvAttachment = (file && file.buffer && file.buffer.length > 0)
+    ? [{ filename: file.filename || 'cv', content: file.buffer, contentType: file.mimetype || 'application/octet-stream' }]
+    : [];
+
+  const notifData = {
+    Source:         isOrder ? 'CV Order' : 'Contact Form',
+    Name:           senderName,
+    Email:          senderEmail,
+    ...(serviceType           && { Service:    serviceType }),
+    ...(fields.targetRole     && { 'Target Role': fields.targetRole }),
+    ...(fields.notes          && { Message:    fields.notes }),
+    ...(file && file.filename && { 'CV File':  file.filename }),
+  };
+
+  console.log('[send-email] invoked (multipart)', {
+    host: process.env.SMTP_HOST || 'smtp.ionos.co.uk',
+    port: process.env.SMTP_PORT || '587',
+    user: process.env.SMTP_USER || 'hello@cv-plug.com',
+    passLen: process.env.SMTP_PASS ? process.env.SMTP_PASS.length : 0,
+    isOrder,
+    senderEmail,
+    cvFile: file ? `${file.filename} (${file.buffer ? file.buffer.length : 0} bytes)` : 'none',
+  });
+
+  let notifSent = false;
+  try {
+    await transporter.sendMail({
+      from:        `"CV Plug Website" <hello@cv-plug.com>`,
+      to:          'hello@cv-plug.com',
+      subject:     isOrder
+        ? `New CV order — ${senderName} (${serviceType || 'unknown package'})`
+        : `New contact enquiry — ${senderName}`,
+      html:        notificationHtml(notifData),
+      attachments: cvAttachment,
+    });
+    notifSent = true;
+  } catch (err) {
+    console.error('[send-email] notification email failed:', JSON.stringify(err, Object.getOwnPropertyNames(err)));
+  }
+
+  let confirmSent = false;
+  try {
+    await transporter.sendMail({
+      from:        `"CV Plug" <hello@cv-plug.com>`,
+      to:          senderEmail,
+      subject:     isOrder
+        ? `We've received your CV order, ${senderName.split(' ')[0]}!`
+        : `Thanks for getting in touch, ${senderName.split(' ')[0]}!`,
+      html:        confirmationHtml(senderName, isOrder ? 'website_order' : 'website_contact'),
+      attachments: cvAttachment,
+    });
+    confirmSent = true;
+  } catch (err) {
+    console.error('[send-email] confirmation email failed:', JSON.stringify(err, Object.getOwnPropertyNames(err)));
+  }
+
+  console.log(`[send-email] done (multipart) — notif:${notifSent} confirm:${confirmSent}`);
+
+  if (!notifSent) {
+    return {
+      statusCode: 500,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ success: false, message: 'Failed to send email. Please try again or contact us directly.' }),
+    };
+  }
+
+  return {
+    statusCode: 200,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ success: true, message: 'Emails sent.' }),
+  };
+}
+
 exports.handler = async (event) => {
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: JSON.stringify({ error: 'Method not allowed' }) };
   }
 
+  const contentType = event.headers['content-type'] || event.headers['Content-Type'] || '';
+
+  if (contentType.startsWith('multipart/form-data')) {
+    return handleMultipart(event);
+  }
+
+  // JSON path — checklist lead magnet and contact form (unchanged)
   let body;
   try {
     body = JSON.parse(event.body);
