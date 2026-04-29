@@ -34,6 +34,11 @@
   status = 301
 
 [[redirects]]
+  from = "/cv-writing-bolton"
+  to   = "/bolton"
+  status = 301
+
+[[redirects]]
   from = "/ats-scan"
   to   = "/ats-scan.html"
   status = 301
